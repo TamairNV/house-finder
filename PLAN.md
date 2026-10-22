@@ -150,14 +150,20 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
 - City landing `/student-accommodation/newcastle-upon-tyne` server-renders only **8 cards** (`a[data-house]` JSON with
   beds, price pppw, from, bills_included, lat/lng, photo_urls, description, landlord, rental_type).
   Full results (~422) load client-side from an unknown XHR (`/s/...` page, `data-search-token`). Current approach:
-  landing cards + walk `https://sturents.com/sitemap/index.xml` for `/student-accommodation/newcastle-upon-tyne/house/`
-  URLs (sitemap layout unverified!). TODO: find the XHR in devtools on the Mac, check it isn't under /ajax (robots).
+  landing cards + `https://sturents.com/sitemap/houses/{city-slug}.xml` (verified 2026-10-22: the index lists
+  `houses/newcastle-upon-tyne.xml` and `houses-deactivated/...`; slug taken from the landing cards' URLs).
+  The profile's `/student-accommodation/newcastle` page has 12 cards with **`data-house="{}"`** (empty): beds/price/date
+  come from card text, photo from `data-photo`, street + landlord from a JSON-LD `Residence` per card (description
+  ends "- {id}"). TODO: find the XHR in devtools on the Mac, check it isn't under /ajax (robots).
 - Detail: JSON-LD `@type House` (numberOfBedrooms, numberOfBathroomsTotal, address.postalCode, geo) +
   `p.test-availability-{bills-included,date-from,date-to,rent}`; photos `public.sturents.com/photos/N.jpg`.
 
 ### SpareRoom ⚠️ low yield
 - `/flatshare/newcastle_upon_tyne[/pageN]` only (robots disallows most filter params). Cards `li.listing-result[data-listing-*]`.
-  Mostly single rooms: we keep only cards matching "N bed house/flat/property". Detail `dl.feature-list` dt/dd;
+  Mostly single rooms. Classified on `span.listing-card__room` only (descriptions of single rooms often mention "5 bed
+  house"): "3 bed flat" = whole property (total rent); "6 doubles" = several rooms in one house, kept with per-room
+  (per-person) rent; "Double room"/"Single room" skipped. Detail per-room rents in `.feature--price_room_only`
+  (`<dt>£750 pcm</dt><dd>double (En suite)</dd>`). Detail `dl.feature-list` dt/dd;
   `location: {latitude: "..", longitude: ".."}`. No bathroom field. Probably not worth many pages.
 
 ### Zoopla ❌ blocked
@@ -180,6 +186,8 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
   "£139pppw (£166pppw inc bills)" → rent 139, bills package 27. Deposits/holding fees ignored.
 - `pcm ↔ pw`: × 52/12. Student sites (AFS, UniHomes, StuRents) are pppw.
 - Dates: explicit date > "available now" > academic year hint ("2027/28" → assume 1 July 2027, flagged).
+- Sanity: a "whole property" structured price under £50 pppw for 3+ people is treated as a room rent
+  (`price_source = structured-room`), e.g. Rightmove "5 bedroom house share" at £450 pcm.
 - Bathrooms: structured value; 0 = unknown; else text ("2 bathrooms", "4 en-suites").
 - Dedupe: same bedrooms + (same street key & outcode, or exact coords within 60 m) + pppw within 8%. Canonical = most photos.
   Status/favourite propagate. Duplicates show as "Also on".
@@ -215,7 +223,8 @@ in the group commutes to Coach Lane / work.
 
 ## 9. Next steps (priority order for the next session)
 
-1. **Get the code onto the server** (GitHub repo + deploy key, or copy from the Mac). Then on TNV-server:
+1. ~~Get the code onto the server~~ Done 2026-10-22 (see session log). Remaining from that step: real-page fixtures (9.1).
+   Original steps, for reference:
    - `python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt && .venv/bin/pytest -q`
    - Run parsers on the saved probe pages: `python -m app.cli parse rightmove search ~/house-finder-probe/rm_search.html` etc.
      (file names: rm_search, rm_detail, openrent_search, openrent_detail, unihomes_p1/p2, afs_search, afs_detail,
@@ -283,3 +292,10 @@ docker compose logs -f                        # first scrape starts ~2 min after
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with
   demo data. Couldn't create GitHub repo; asked Tamair to create `TamairNV/house-finder` + deploy key.
+- 2026-10-22 (TNV-server): cloned, 77 tests passed; parsers checked against saved and live pages. Fixed: StuRents crash on
+  `data-house="[]"`, city-page `data-house="{}"` cards, sitemap walk (was reading Aberdeen), deposit; OpenRent detail
+  photos (og:image is an older listing id; use `a.lightbox_item`); SpareRoom room-vs-house classification, per-room
+  rents, "Available now"; AFS £0.00 bills quote / 0 deposit; UniHomes detail photos (175 → 16); per-room price sanity
+  rule; `/api/status` runs were never saved (expunge before commit). 88 tests. Deployed via docker compose on :8095.
+  First scrape: rightmove 127, unihomes 108, afs 60, sturents 12, spareroom 7, openrent 4 (no errors). Only 3 pass the
+  filters; 22 more fail only because 2 bathrooms < 0.5 per person for 5 (ask Tamair whether 2 baths for 5 is OK).
