@@ -132,59 +132,60 @@ document.addEventListener("touchend", (e) => {
 
 const isNew = (l) => l.first_seen && Date.now() - new Date(l.first_seen + "Z") < 48 * 3600 * 1000;
 
+const STATUSES = ["new", "shortlisted", "contacted", "viewing", "applied", "rejected", "hidden"];
+const STATUS_LABEL = { new: "New", shortlisted: "Shortlisted", contacted: "Contacted", viewing: "Viewing", applied: "Applied", rejected: "Rejected", hidden: "Hidden" };
+
 function cardHtml(l) {
   const photos = l.photos || [];
-  const also = (l.also_on || []).map((d) => `<a class="chip accent" href="${esc(d.url)}" target="_blank" rel="noopener">${SOURCE_LABEL[d.source] || d.source}</a>`).join("");
-  const reasons = (l.filter_reasons || []).length ? `<div class="reasons">✗ ${l.filter_reasons.map(esc).join(" · ")}</div>` : "";
-  const warns = (l.warnings || []).length ? `<div class="warnings">⚠ ${l.warnings.map(esc).join(" · ")}</div>` : "";
-  const bathRatio = l.bathrooms && l.bedrooms ? ` (1:${(window.PROFILE.group_size / l.bathrooms).toFixed(1)})` : "";
+  const also = (l.also_on || []).map((d) => `<a href="${esc(d.url)}" target="_blank" rel="noopener">${SOURCE_LABEL[d.source] || d.source}</a>`).join(", ");
+  const issues = [...(l.filter_reasons || []).map((r) => `<span class="bad">✗ ${esc(r)}</span>`), ...(l.warnings || []).map((w) => `<span class="warn">⚠ ${esc(w)}</span>`)];
+  const billsNote = l.bills_included ? "· bills included" : l.bills_pppw_stated ? `+ ${money(l.bills_pppw_stated)} bills` : `+ ~${money(l.bills_pppw_estimate)} bills (est.)`;
+  const src = SOURCE_LABEL[l.source] || l.source;
   return `<article class="card ${l.favourite ? "fav" : ""} ${l.passes_filters ? "" : "failing"}" data-id="${l.id}">
     <div class="gallery" data-i="0">
       ${photos.length ? `<a href="/listing/${l.id}"><img loading="lazy" src="${img(photos[0])}" alt="" onerror="this.style.visibility='hidden'"></a>
-        ${photos.length > 1 ? `<button class="nav prev" data-act="prev">‹</button><button class="nav next" data-act="next">›</button>` : ""}
+        ${photos.length > 1 ? `<button class="nav prev" data-act="prev" aria-label="Previous photo">‹</button><button class="nav next" data-act="next" aria-label="Next photo">›</button>` : ""}
         <span class="counter">1/${photos.length}</span>` : `<a href="/listing/${l.id}" class="noimg">No photos</a>`}
-      <span class="${scoreClass(l.score)}">${Math.round(l.score || 0)}</span>
-      <span class="src-badge">${SOURCE_LABEL[l.source] || l.source}</span>
+      <span class="${scoreClass(l.score)}" title="Match score">${Math.round(l.score || 0)}</span>
+      <button class="fav-btn ${l.favourite ? "on" : ""}" data-act="fav" aria-label="Favourite" title="Favourite">★</button>
       ${isNew(l) ? `<span class="new-badge">NEW</span>` : ""}
     </div>
     <div class="body">
+      <div class="price-row">
+        <div class="price">${money(l.total_pppw)}<small> pppw all-in</small></div>
+        <a class="src-link" href="${esc(l.url)}" target="_blank" rel="noopener" title="Open on ${esc(src)}">${esc(src)} ↗</a>
+      </div>
+      <div class="price-sub">${money(l.rent_pppw)} rent ${esc(billsNote)}</div>
       <a class="title" href="/listing/${l.id}">${esc(l.title || l.address || "Listing")}</a>
-      <div class="addr">${esc(l.address || "")}${l.area ? ` · ${esc(l.area)}` : ""}</div>
-      ${priceBlock(l)}
+      <div class="addr">${esc((l.address || "").split(",")[0])}${l.area ? ` · ${esc(l.area)}` : ""}</div>
       <div class="facts">
         <span class="chip">🛏 ${l.bedrooms ?? "?"}</span>
-        <span class="chip">🛁 ${l.bathrooms ?? "?"}${bathRatio}</span>
+        <span class="chip">🛁 ${l.bathrooms ?? "?"}</span>
         ${availChip(l)}
         ${l.bills_included ? `<span class="chip good">Bills inc</span>` : ""}
-        ${l.furnished ? `<span class="chip">${esc(l.furnished)}</span>` : ""}
+        ${l.furnished ? `<span class="chip">${esc(l.furnished[0].toUpperCase() + l.furnished.slice(1))}</span>` : ""}
         ${l.site_status !== "active" ? `<span class="chip bad">${esc(l.site_status.replace("_", " "))}</span>` : ""}
-        ${voteChip(l)}
       </div>
-      <div class="commutes">${commuteChips(l)}</div>
-      ${reasons}${warns}
-      ${also ? `<div class="facts"><span class="muted" style="font-size:12px">Also on:</span>${also}</div>` : ""}
+      ${(l.commutes || []).length ? `<div class="commutes">${commuteChips(l)}</div>` : ""}
+      ${issues.length ? `<div class="issues">${issues.join("")}</div>` : ""}
+      ${also ? `<div class="also">Also on ${also}</div>` : ""}
     </div>
-    <div class="actions">
-      <button class="icon-btn ${l.favourite ? "on" : ""}" data-act="fav" title="Favourite">★</button>
-      ${groupNames().length ? voteButtons(l) : ""}
-      <select data-act="status">${["new", "shortlisted", "contacted", "viewing", "applied", "rejected", "hidden"].map((s) => `<option ${s === l.user_status ? "selected" : ""}>${s}</option>`).join("")}</select>
-      <div class="spacer"></div>
-      <a href="${esc(l.url)}" target="_blank" rel="noopener" class="btn site-btn" title="Open on ${esc(SOURCE_LABEL[l.source] || l.source)}">Open<span class="wide-only">&nbsp;on site</span>&nbsp;↗</a>
-    </div>
+    ${cardFoot(l)}
   </article>`;
 }
 
-function voteButtons(l) {
-  const mine = (l.votes || {})[myName()] || 0;
-  return `<button class="icon-btn vote ${mine > 0 ? "on" : ""}" data-act="up" title="I like it">👍</button>
-    <button class="icon-btn vote ${mine < 0 ? "on" : ""}" data-act="down" title="Not for me">👎</button>`;
-}
-
-function voteChip(l) {
+function cardFoot(l) {
   const vals = Object.values(l.votes || {});
-  if (!vals.length) return "";
   const up = vals.filter((v) => v > 0).length, down = vals.filter((v) => v < 0).length;
-  return `<span class="chip vote-chip ${down ? "warn" : "good"}" title="${esc(Object.entries(l.votes).map(([k, v]) => `${k} ${v > 0 ? "👍" : "👎"}`).join(", "))}">👍${up}${down ? ` 👎${down}` : ""}</span>`;
+  const mine = (l.votes || {})[myName()] || 0;
+  const voting = groupNames().length ? `<div class="vote-pill" role="group" aria-label="Vote">
+      <button class="${mine > 0 ? "on" : ""}" data-act="up" title="I like it">👍<b>${up || ""}</b></button>
+      <button class="${mine < 0 ? "on" : ""}" data-act="down" title="Not for me">👎<b>${down || ""}</b></button>
+    </div>` : "";
+  return `<div class="card-foot">${voting}
+    <label class="status-pill st-${esc(l.user_status)}"><span class="sr">Status</span><select data-act="status">${STATUSES.map((s) =>
+      `<option value="${s}" ${s === l.user_status ? "selected" : ""}>${STATUS_LABEL[s]}</option>`).join("")}</select></label>
+  </div>`;
 }
 
 function tableHtml() {
@@ -319,7 +320,8 @@ async function init() {
   document.getElementById("reset").addEventListener("click", () => { saveState({ view }); location.reload(); });
 
   document.getElementById("results").addEventListener("click", async (e) => {
-    const act = e.target.dataset.act;
+    const actEl = e.target.closest("[data-act]");
+    const act = actEl?.dataset.act;
     const card = e.target.closest("[data-id]");
     if (!act || !card) {
       if (view === "table" && card && !e.target.closest("a")) location.href = `/listing/${card.dataset.id}`;
@@ -332,21 +334,20 @@ async function init() {
     } else if (act === "fav") {
       l.favourite = !l.favourite;
       await patchListing(l.id, { favourite: l.favourite });
-      e.target.classList.toggle("on", l.favourite);
+      actEl.classList.toggle("on", l.favourite);
       card.classList.toggle("fav", l.favourite);
     } else if (act === "up" || act === "down") {
       if (!myName()) { setView("votes"); toast("Pick your name to vote"); return; }
       if (!(await vote(l, act === "up" ? 1 : -1))) return;
-      const mine = l.votes[myName()] || 0;
-      card.querySelector("[data-act=up]").classList.toggle("on", mine > 0);
-      card.querySelector("[data-act=down]").classList.toggle("on", mine < 0);
-      const chip = card.querySelector(".facts .vote-chip");
-      chip ? (chip.outerHTML = voteChip(l) || "<span></span>") : card.querySelector(".facts").insertAdjacentHTML("beforeend", voteChip(l));
+      card.querySelector(".card-foot").outerHTML = cardFoot(l);
     }
   });
   document.getElementById("results").addEventListener("change", async (e) => {
     if (e.target.dataset.act !== "status") return;
     const id = Number(e.target.closest("[data-id]").dataset.id);
+    e.target.parentElement.className = `status-pill st-${e.target.value}`;
+    const l = items.find((x) => x.id === id);
+    if (l) l.user_status = e.target.value;
     await patchListing(id, { user_status: e.target.value });
     toast(`Marked as ${e.target.value}`);
     if (["hidden", "rejected"].includes(e.target.value)) refresh();

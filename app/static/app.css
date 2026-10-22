@@ -79,8 +79,6 @@ label.inline { display: inline-flex; align-items: center; gap: 6px; margin-right
 .commutes { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--muted); }
 .reasons { font-size: 12px; color: var(--bad); }
 .warnings { font-size: 12px; color: var(--warn); }
-.card .actions { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); align-items: center; }
-.card .actions .spacer { flex: 1; }
 .icon-btn { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 4px 8px; }
 .icon-btn.on { background: var(--accent-soft); border-color: var(--accent); }
 
@@ -398,11 +396,6 @@ body.dirty .save-bar { display: flex; }
   .map-legend { left: 8px; right: 8px; bottom: 8px; justify-content: space-between; }
   .seg button { padding: 6px 8px; }
 }
-.card .actions .btn { white-space: nowrap; }
-@media (max-width: 900px) { .card .actions { gap: 6px; } .card .actions select { flex: 1; min-width: 0; } .card .actions .spacer { display: none; } }
-.card .actions { flex-wrap: wrap; }
-.card .actions .site-btn { flex: none; margin-left: auto; }
-@media (max-width: 900px) { .wide-only { display: none; } .card .actions select { flex: 1 1 80px; } }
 .commute-table td { vertical-align: top; }
 
 /* No sideways rubber-banding on mobile: only real carousels (tables, chip strips, thumbnails, map, photos) pan sideways.
@@ -410,9 +403,39 @@ body.dirty .save-bar { display: flex; }
 body { touch-action: pan-y pinch-zoom; }
 .filters, .filters.open { touch-action: pan-y pinch-zoom; overflow-x: hidden; overscroll-behavior: contain; }
 .table-wrap, .section-nav, .thumbs { overscroll-behavior-x: contain; touch-action: pan-x pan-y pinch-zoom; }
-/* Card footer: one tidy row, the status picker takes whatever space is left */
-.card .actions { flex-wrap: nowrap; gap: 6px; align-items: center; }
-.card .actions .icon-btn { flex: none; }
-.card .actions select { flex: 1 1 0; min-width: 0; width: 0; }
-.card .actions .site-btn { flex: none; margin-left: 0; }
-.card .actions .spacer { display: none; }
+
+/* ---------------------------------------------------------------- cards */
+.card .body { padding: 12px 14px 10px; gap: 6px; }
+.price-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.card .price { font-size: 22px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.card .price small { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.src-link { font-size: 12px; font-weight: 600; white-space: nowrap; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); }
+.src-link:hover { text-decoration: none; filter: brightness(.97); }
+.price-sub { font-size: 12px; color: var(--muted); margin-top: -4px; }
+.card .title { font-size: 15px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .addr { margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .facts { gap: 5px; }
+.card .commutes { gap: 5px; }
+.issues { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.issues .bad { color: var(--bad); } .issues .warn { color: var(--warn); }
+.also { font-size: 12px; color: var(--muted); }
+.fav-btn { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; min-height: 0 !important; padding: 0; border-radius: 50%; border: 0;
+  background: rgba(255,255,255,.92); color: #9ca3af; font-size: 18px; line-height: 34px; box-shadow: 0 1px 4px rgba(0,0,0,.25); z-index: 2; }
+.fav-btn.on { color: #f59e0b; }
+.card.fav { outline: 0; box-shadow: 0 0 0 2px #f59e0b, var(--shadow); }
+.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); margin-top: auto; }
+.vote-pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: none; }
+.vote-pill button { border: 0; border-radius: 0; background: none; padding: 0 12px; min-height: 36px !important; display: inline-flex; align-items: center; gap: 5px; font-size: 15px; }
+.vote-pill button + button { border-left: 1px solid var(--line); }
+.vote-pill button b { font-size: 13px; color: var(--muted); min-width: 0; }
+.vote-pill button.on { background: var(--accent-soft); }
+.vote-pill button.on b { color: var(--accent); }
+.status-pill { position: relative; display: inline-flex; flex: none; margin-left: auto; border-radius: 999px; background: var(--chip); color: var(--text); }
+.status-pill::after { content: "▾"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none; opacity: .7; }
+.status-pill select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600;
+  padding: 0 28px 0 14px; min-height: 36px !important; border-radius: 999px; cursor: pointer; width: auto; }
+.status-pill.st-shortlisted { background: var(--accent-soft); color: var(--accent); }
+.status-pill.st-contacted, .status-pill.st-viewing { background: var(--warn-soft); color: var(--warn); }
+.status-pill.st-applied { background: var(--good-soft); color: var(--good); }
+.status-pill.st-rejected, .status-pill.st-hidden { background: var(--bad-soft); color: var(--bad); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
