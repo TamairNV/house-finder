@@ -17,6 +17,8 @@ import logging
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 
 import anthropic
 
@@ -41,7 +43,17 @@ Stick to what the listing data and photos show. When something matters but isn't
 and suggest asking the agent, rather than guessing. Commute times marked as estimates come from
 straight-line distance, so treat them as rough."""
 
-OVERVIEW_PROMPT = """Write an overview of this listing for the group. Use Markdown with these sections:
+# Answers are shown short-first: everything after this marker sits behind a "Show more" button.
+MORE = "<!-- more -->"
+
+OVERVIEW_PROMPT = f"""Write an overview of this listing for the group, in two parts.
+
+Part 1, the short version (what everyone reads): one line with the verdict and a rating like **7/10**, then
+exactly 3 short bullets: the best thing, the biggest worry, and the all-in cost vs budget. Under 60 words total.
+
+Then a line containing only {MORE}
+
+Part 2, the detail, in Markdown with these sections:
 
 ## Verdict
 One or two sentences: is it worth a viewing, and why. End with a rating like **7/10**.
@@ -64,11 +76,28 @@ and how it compares with the group's budget.
 ## Ask the agent
 4-6 specific questions to ask before or at a viewing.
 
-Keep it under about 400 words."""
+Keep part 2 under about 350 words."""
+
+ASK_SUFFIX = f"""
+
+(Answer in 1-3 short sentences first. If there's genuinely useful extra detail, add a line containing only
+{MORE} and put the detail after it. Markdown is fine.)"""
 
 
 class AIError(Exception):
     pass
+
+
+_usage = threading.local()
+
+
+def _set_usage(**kw) -> None:
+    _usage.value = {k: v for k, v in kw.items() if v is not None}
+
+
+def last_usage() -> dict:
+    """Token/cost figures from the most recent call on this thread (for the AI log)."""
+    return getattr(_usage, "value", None) or {}
 
 
 def provider() -> str | None:
@@ -172,6 +201,9 @@ def _call(system: str, messages: list[dict], max_tokens: int = 4000) -> str:
         raise AIError("Rate limited by the Anthropic API; try again in a minute.") from e
     except anthropic.APIConnectionError as e:
         raise AIError("Couldn't reach the Anthropic API.") from e
+    if (u := getattr(resp, "usage", None)) is not None:
+        _set_usage(provider="api", model=getattr(resp, "model", None) or st.ai_model, output_tokens=u.output_tokens,
+                   input_tokens=u.input_tokens + (u.cache_read_input_tokens or 0) + (u.cache_creation_input_tokens or 0))
     if resp.stop_reason == "refusal":
         raise AIError("The model declined to answer this one.")
     text = "".join(b.text for b in resp.content if b.type == "text").strip()
@@ -191,6 +223,7 @@ def _first_turn(l: Listing, profile: Profile, prompt: str, photos: bool) -> list
 
 def _call_with_photo_fallback(build) -> str:
     """Listing sites sometimes refuse image fetches; retry text-only if the photos break the request."""
+    _usage.value = None
     if provider() == "claude_cli":
         return _call_cli(SYSTEM, build(True))
     try:
@@ -201,6 +234,19 @@ def _call_with_photo_fallback(build) -> str:
             return _call(SYSTEM, build(False))
         except anthropic.BadRequestError as e2:
             raise AIError(f"The API rejected the request: {e2.message}") from e2
+
+
+def log_usage(s, *, user: str | None, listing_id: int | None, kind: str, question: str | None = None,
+              error: str | None = None, started: float | None = None) -> None:
+    """Record one AI request in the ai_usage table (caller commits)."""
+    from .models import AIUsage
+    u = last_usage()
+    if "duration_ms" not in u and started is not None:
+        u["duration_ms"] = int((time.monotonic() - started) * 1000)
+    s.add(AIUsage(user_email=user, listing_id=listing_id, kind=kind, question=(question or "")[:300] or None,
+                  ok=error is None, error=(error or "")[:300] or None, provider=u.get("provider") or provider(),
+                  model=u.get("model"), input_tokens=u.get("input_tokens", 0), output_tokens=u.get("output_tokens", 0),
+                  cost_usd=u.get("cost_usd"), duration_ms=u.get("duration_ms")))
 
 
 def generate_overview(l: Listing, profile: Profile) -> str:
@@ -224,7 +270,7 @@ def ask(l: Listing, profile: Profile, question: str) -> dict:
         for turn in history:
             msgs.append({"role": "user", "content": turn["q"]})
             msgs.append({"role": "assistant", "content": turn["a"]})
-        msgs.append({"role": "user", "content": question + "\n\n(Answer concisely, in Markdown if it helps.)"})
+        msgs.append({"role": "user", "content": question + ASK_SUFFIX})
         return msgs
 
     answer = _call_with_photo_fallback(build)
@@ -287,6 +333,7 @@ def _call_cli(system: str, messages: list[dict]) -> str:
     if st.claude_model:
         cmd += ["--model", st.claude_model]
     line = json.dumps({"type": "user", "message": {"role": "user", "content": _flatten(messages)}})
+    t0 = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="hf-ai-") as cwd:  # empty dir: no CLAUDE.md or project files
         try:
             proc = subprocess.run(cmd, input=line + "\n", capture_output=True, text=True, cwd=cwd, timeout=st.claude_timeout)
@@ -306,6 +353,11 @@ def _call_cli(system: str, messages: list[dict]) -> str:
         log.warning("claude CLI failed (rc=%s): %s", proc.returncode, proc.stderr[-2000:])
         hint = " Is Claude Code logged in on the server?" if "login" in (proc.stderr + proc.stdout).lower() else ""
         raise AIError(f"Claude Code didn't return an answer.{hint}")
+    u = result.get("usage") or {}
+    _set_usage(provider="claude_cli", model=next(iter(result.get("modelUsage") or {}), None) or st.claude_model,
+               input_tokens=sum(u.get(k) or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")),
+               output_tokens=u.get("output_tokens") or 0, cost_usd=result.get("total_cost_usd"),
+               duration_ms=result.get("duration_ms") or int((time.monotonic() - t0) * 1000))
     text = (result.get("result") or "").strip()
     if result.get("is_error") or result.get("subtype") != "success" or not text:
         raise AIError(f"Claude Code error: {text[:300] or result.get('subtype')}")

@@ -31,10 +31,12 @@ function fill() {
     <input data-bill="${k}" type="${typeof P.bills[k] === "boolean" ? "checkbox" : "number"}" step="any"></div>`).join("");
   document.querySelectorAll("[data-bill]").forEach((el) => setVal(el, P.bills[el.dataset.bill]));
   $("weights").innerHTML = Object.keys(P.weights).map((k) => `<div class="form-row"><label>${k.replace("_", " ")} weight</label><input type="number" data-weight="${k}" value="${P.weights[k]}"></div>`).join("");
-  $("sources").innerHTML = Object.entries(P.sources).map(([k, s]) => `<div class="form-row"><label>${SOURCE_LABEL[k] || k}</label>
-    <div><label class="inline"><input type="checkbox" data-src="${k}" data-f="enabled" ${s.enabled ? "checked" : ""}> on</label>
-    <label class="inline">pages <input type="number" style="width:60px" data-src="${k}" data-f="max_pages" value="${s.max_pages}"></label>
-    <label class="inline"><input type="checkbox" data-src="${k}" data-f="fetch_details" ${s.fetch_details ? "checked" : ""}> details</label></div></div>`).join("");
+  $("sources").innerHTML = `<div class="src-row src-headings muted"><span>Site</span><span>On</span><span>Pages</span><span title="Open each listing for full details">Details</span></div>`
+    + Object.entries(P.sources).map(([k, s]) => `<div class="src-row">
+    <span class="src-name">${SOURCE_LABEL[k] || k}</span>
+    <input type="checkbox" aria-label="${k} on" data-src="${k}" data-f="enabled" ${s.enabled ? "checked" : ""}>
+    <input type="number" aria-label="${k} pages" min="1" data-src="${k}" data-f="max_pages" value="${s.max_pages}">
+    <input type="checkbox" aria-label="${k} details" data-src="${k}" data-f="fetch_details" ${s.fetch_details ? "checked" : ""}></div>`).join("");
   renderPeople();
   bathHint();
   $("raw-json").value = JSON.stringify(P, null, 2);
@@ -51,13 +53,17 @@ function renderPeople() {
       <input data-pf="email" value="${esc(p.email || "")}" placeholder="Email (optional)">
       <button class="small danger" data-act="del-person">Remove</button></div>
     ${(p.places || []).map((pl, li) => `<div class="place-row" data-li="${li}">
-      <input data-lf="label" value="${esc(pl.label)}" placeholder="Place (e.g. Uni, work)">
-      <input data-lf="postcode" value="${esc(pl.postcode || "")}" placeholder="Postcode">
-      <select data-lf="mode">${["walk", "cycle", "transit", "drive"].map((m) => `<option ${m === pl.mode ? "selected" : ""}>${m}</option>`).join("")}</select>
-      <input data-lf="max_minutes" type="number" value="${pl.max_minutes}" title="Max minutes">
-      <label class="inline" title="Exclude places beyond max minutes"><input data-lf="hard_limit" type="checkbox" ${pl.hard_limit ? "checked" : ""}> hard</label>
-      <button class="small danger" data-act="del-place">✕</button>
-      <span class="muted" style="grid-column:1/-1;font-size:12px">${pl.lat != null ? `📍 ${pl.lat.toFixed(4)}, ${pl.lng.toFixed(4)}` : "not located yet (saved on Save)"} · weight <input data-lf="weight" type="number" step="0.1" value="${pl.weight}" style="width:60px"> · days/week <input data-lf="days_per_week" type="number" value="${pl.days_per_week}" style="width:50px"></span>
+      <label class="f f-label"><span>Place</span><input data-lf="label" value="${esc(pl.label)}" placeholder="e.g. Uni, work"></label>
+      <label class="f f-pc"><span>Postcode</span><input data-lf="postcode" value="${esc(pl.postcode || "")}" placeholder="NE1 7RU"></label>
+      <label class="f"><span>Get there by</span><select data-lf="mode">${["walk", "cycle", "transit", "drive"].map((m) => `<option ${m === pl.mode ? "selected" : ""}>${m}</option>`).join("")}</select></label>
+      <label class="f"><span>Max minutes</span><input data-lf="max_minutes" type="number" value="${pl.max_minutes}"></label>
+      <label class="f"><span>Weight</span><input data-lf="weight" type="number" step="0.1" value="${pl.weight}"></label>
+      <label class="f"><span>Days/week</span><input data-lf="days_per_week" type="number" value="${pl.days_per_week}"></label>
+      <div class="place-foot">
+        <label class="inline" title="Hide houses beyond max minutes"><input data-lf="hard_limit" type="checkbox" ${pl.hard_limit ? "checked" : ""}> Hide houses further than this</label>
+        <span class="muted">${pl.lat != null ? `📍 ${pl.lat.toFixed(4)}, ${pl.lng.toFixed(4)}` : "Located when you save"}</span>
+        <button class="small danger" data-act="del-place">Remove place</button>
+      </div>
     </div>`).join("")}
     <button class="small" data-act="add-place">+ Add place</button>
   </div>`).join("");
@@ -91,13 +97,18 @@ async function geocodePlaces() {
   }
 }
 
+// The save bar only shows once something in the profile sections has changed.
+const setDirty = (on) => document.body.classList.toggle("dirty", on);
+
 async function save() {
   collect();
   $("save-state").textContent = "Saving…";
   await geocodePlaces();
   try {
     const r = await api("/api/profile", { method: "PUT", body: P });
-    $("save-state").textContent = `Saved, re-scored ${r.rescored} listings.`;
+    $("save-state").textContent = "You have unsaved changes";
+    toast(`Saved, re-scored ${r.rescored} listings`);
+    setDirty(false);
     fill();
   } catch (e) {
     $("save-state").innerHTML = `<span class="err">${esc(e.message)}</span>`;
@@ -111,22 +122,21 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 function recipientHtml(r) {
   const cb = (k, label) => `<label class="inline"><input type="checkbox" data-rf="${k}" ${r[k] ? "checked" : ""}> ${label}</label>`;
   return `<div class="recipient" data-rid="${r.id ?? ""}">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <input data-rf="name" value="${esc(r.name || "")}" placeholder="Name">
-      <input data-rf="email" value="${esc(r.email || "")}" placeholder="email@example.com" style="min-width:240px">
-      ${cb("active", "active")}
+    <div class="r-grid">
+      <label class="f"><span>Name</span><input data-rf="name" value="${esc(r.name || "")}" placeholder="Name"></label>
+      <label class="f"><span>Email</span><input data-rf="email" type="email" value="${esc(r.email || "")}" placeholder="email@example.com"></label>
+      <label class="f"><span>Digest</span><select data-rf="digest_frequency">${FREQ.map((f) => `<option ${f === r.digest_frequency ? "selected" : ""}>${f}</option>`).join("")}</select></label>
+      <label class="f"><span>At (hour, 0-23)</span><input data-rf="digest_hour" type="number" min="0" max="23" value="${r.digest_hour ?? 18}"></label>
+      <label class="f"><span>Day (if weekly)</span><select data-rf="digest_weekday">${DAYS.map((d, i) => `<option value="${i}" ${i === r.digest_weekday ? "selected" : ""}>${d}</option>`).join("")}</select></label>
+      <label class="f"><span>Min score</span><input data-rf="min_score" type="number" value="${r.min_score ?? 0}"></label>
+      <label class="f"><span>Max places per email</span><input data-rf="max_items" type="number" value="${r.max_items ?? 20}"></label>
     </div>
-    <div style="margin-bottom:6px">Digest: <select data-rf="digest_frequency">${FREQ.map((f) => `<option ${f === r.digest_frequency ? "selected" : ""}>${f}</option>`).join("")}</select>
-      at <input data-rf="digest_hour" type="number" min="0" max="23" value="${r.digest_hour ?? 18}" style="width:60px">:00
-      <span>on <select data-rf="digest_weekday">${DAYS.map((d, i) => `<option value="${i}" ${i === r.digest_weekday ? "selected" : ""}>${d}</option>`).join("")}</select> (weekly)</span></div>
-    <div style="margin-bottom:6px">${cb("include_new", "new places")}${cb("include_price_drops", "price drops")}${cb("include_reminders", "great-place reminders")}${cb("include_status_changes", "shortlist updates")}${cb("instant_great", "instant email for great places")}</div>
-    <div style="margin-bottom:6px">Only places scoring ≥ <input data-rf="min_score" type="number" value="${r.min_score ?? 0}" style="width:60px">
-      ${cb("only_passing", "that fit the rules")} · max <input data-rf="max_items" type="number" value="${r.max_items ?? 20}" style="width:60px"> per email</div>
-    <button class="small primary" data-act="save-r">Save</button>
+    <div class="r-checks">${cb("active", "Active")}${cb("only_passing", "Only places that fit the rules")}${cb("include_new", "New places")}${cb("include_price_drops", "Price drops")}${cb("include_reminders", "Great-place reminders")}${cb("include_status_changes", "Shortlist updates")}${cb("instant_great", "Instant email for great places")}</div>
+    <div class="r-actions"><button class="small primary" data-act="save-r">Save</button>
     ${r.id ? `<a class="btn small" href="/api/recipients/${r.id}/preview" target="_blank">Preview</a>
       <button class="small" data-act="send-r">Send now</button>
       <button class="small danger" data-act="del-r">Delete</button>
-      <span class="muted">${r.last_digest_at ? "last sent " + fmtDateTime(r.last_digest_at) : "never sent"}</span>` : ""}
+      <span class="muted">${r.last_digest_at ? "Last sent " + fmtDateTime(r.last_digest_at) : "Never sent"}</span>` : ""}</div>
   </div>`;
 }
 
@@ -181,9 +191,12 @@ async function init() {
   $("smtp-state").textContent = st.smtp_configured ? "SMTP configured ✓" : "SMTP not configured: set HF_SMTP_* in .env on the server";
 
   $("save").onclick = save;
+  const profileInput = (e) => { if (!e.target.closest("#recipients-panel, #access-panel")) setDirty(true); };
+  document.querySelector("main").addEventListener("input", profileInput);
+  document.querySelector("main").addEventListener("change", profileInput);
   $("p-min_bathrooms_per_person").oninput = bathHint;
   $("p-group_size").oninput = bathHint;
-  $("add-person").onclick = () => { collect(); P.people.push({ name: "", email: null, places: [] }); renderPeople(); };
+  $("add-person").onclick = () => { collect(); P.people.push({ name: "", email: null, places: [] }); renderPeople(); setDirty(true); };
   $("people").onclick = (e) => {
     const act = e.target.dataset.act; if (!act) return;
     collect();
@@ -192,6 +205,7 @@ async function init() {
     if (act === "add-place") P.people[pi].places.push({ label: "", postcode: "", mode: "walk", max_minutes: 25, hard_limit: false, weight: 1, days_per_week: 5, lat: null, lng: null });
     if (act === "del-place") P.people[pi].places.splice(Number(e.target.closest(".place-row").dataset.li), 1);
     renderPeople();
+    setDirty(true);
   };
   $("apply-json").onclick = () => {
     try { P = JSON.parse($("raw-json").value); fill(); toast("Applied, now Save"); } catch (e) { toast("Invalid JSON: " + e.message); }

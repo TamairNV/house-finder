@@ -106,8 +106,8 @@ async function refreshUpdated() {
   try {
     const u = await api("/api/updated");
     const next = u.next_scrape ? new Date(u.next_scrape).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : null;
-    el.innerHTML = (u.scraping ? `<span class="pulse"></span>Checking sites now…` : `Updated ${ago(u.last_scrape)}`)
-      + (u.new_24h ? ` · <a href="/?sort=newest">${u.new_24h} new today</a>` : "");
+    el.innerHTML = (u.scraping ? `<span class="pulse"></span>Checking sites…` : `<span class="upd-dot"></span>Updated ${ago(u.last_scrape)}`)
+      + (u.new_24h ? `<a class="new-pill" href="/?sort=newest">${u.new_24h} new</a>` : "");
     el.title = (u.last_scrape ? `Last scrape finished ${fmtDateTime(u.last_scrape)}` : "No scrape yet") + (next ? ` · next check ${next}` : "");
   } catch (_) { /* header indicator is best-effort */ }
 }

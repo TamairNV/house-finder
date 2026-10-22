@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}AI log · House finder{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h2 style="margin:0">AI log</h2><div class="spacer"></div>
+  <select id="days"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="365">Last year</option></select>
+</div>
+<div id="ai-log"><p class="muted">Loading…</p></div>
+{% endblock %}
+{% block scripts %}<script src="/static/ai_log.js?v={{ v }}"></script>{% endblock %}

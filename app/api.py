@@ -1,7 +1,8 @@
 """JSON API used by the web UI."""
 from __future__ import annotations
 
-from datetime import date, datetime
+import time
+from datetime import date, datetime, timedelta
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -15,7 +16,7 @@ from .bills import estimate_bills
 from .config import get_settings
 from .db import get_session
 from .emailer import Digest, render_digest, send_digest, send_email
-from .models import USER_STATUSES, EmailLog, Event, Listing, Recipient, ScrapeRun
+from .models import USER_STATUSES, AIUsage, EmailLog, Event, Listing, Recipient, ScrapeRun, utcnow
 from .pipeline import rescore_all
 from .profile import Profile
 from .scrapers.registry import SCRAPERS
@@ -171,14 +172,25 @@ def _ai_listing(listing_id: int, s: Session) -> Listing:
     return l
 
 
-@router.post("/listings/{listing_id}/ai/overview")
-def ai_overview(listing_id: int, s: Session = Depends(get_session)):
-    l = _ai_listing(listing_id, s)
+def _run_ai(s: Session, request: Request, l: Listing, kind: str, fn, question: str | None = None):
+    """Run an AI call and log who used it, successful or not."""
+    t0 = time.monotonic()
     try:
-        ai.generate_overview(l, load_profile(s))
+        out = fn()
     except ai.AIError as e:
+        s.rollback()
+        ai.log_usage(s, user=_viewer(request), listing_id=l.id, kind=kind, question=question, error=str(e), started=t0)
+        s.commit()
         raise HTTPException(502, str(e))
+    ai.log_usage(s, user=_viewer(request), listing_id=l.id, kind=kind, question=question, started=t0)
     s.commit()
+    return out
+
+
+@router.post("/listings/{listing_id}/ai/overview")
+def ai_overview(listing_id: int, request: Request, s: Session = Depends(get_session)):
+    l = _ai_listing(listing_id, s)
+    _run_ai(s, request, l, "overview", lambda: ai.generate_overview(l, load_profile(s)))
     return {"ai_overview": l.ai_overview, "ai_overview_at": l.ai_overview_at.isoformat()}
 
 
@@ -187,14 +199,37 @@ class Question(BaseModel):
 
 
 @router.post("/listings/{listing_id}/ai/ask")
-def ai_ask(listing_id: int, body: Question, s: Session = Depends(get_session)):
+def ai_ask(listing_id: int, body: Question, request: Request, s: Session = Depends(get_session)):
     l = _ai_listing(listing_id, s)
-    try:
-        turn = ai.ask(l, load_profile(s), body.question)
-    except ai.AIError as e:
-        raise HTTPException(502, str(e))
-    s.commit()
-    return turn
+    return _run_ai(s, request, l, "ask", lambda: ai.ask(l, load_profile(s), body.question), body.question)
+
+
+@router.get("/ai/usage")
+def ai_usage(request: Request, days: int = 30, s: Session = Depends(get_session)):
+    """AI log for admins: recent requests plus per-person totals."""
+    if not _can_edit_access(request):
+        raise HTTPException(403, "Only an admin can see the AI log.")
+    since = utcnow() - timedelta(days=days)
+    rows = s.execute(select(AIUsage, Listing.title).outerjoin(Listing, Listing.id == AIUsage.listing_id)
+                     .where(AIUsage.at >= since).order_by(desc(AIUsage.id)).limit(500)).all()
+    people: dict[str, dict] = {}
+    for u, _ in rows:
+        p = people.setdefault(u.user_email or "", {"user": u.user_email, "requests": 0, "failed": 0, "input_tokens": 0,
+                                                    "output_tokens": 0, "cost_usd": 0.0, "last": None})
+        p["requests"] += 1
+        p["failed"] += 0 if u.ok else 1
+        p["input_tokens"] += u.input_tokens or 0
+        p["output_tokens"] += u.output_tokens or 0
+        p["cost_usd"] += u.cost_usd or 0
+        p["last"] = max(p["last"] or "", u.at.isoformat())
+    return {
+        "days": days, "me": _viewer(request),
+        "people": sorted(people.values(), key=lambda p: -p["requests"]),
+        "rows": [{"at": u.at.isoformat(), "user": u.user_email, "listing_id": u.listing_id, "title": title,
+                  "kind": u.kind, "question": u.question, "ok": u.ok, "error": u.error, "provider": u.provider,
+                  "model": u.model, "input_tokens": u.input_tokens, "output_tokens": u.output_tokens,
+                  "cost_usd": u.cost_usd, "duration_ms": u.duration_ms} for u, title in rows],
+    }
 
 
 @router.delete("/listings/{listing_id}/ai/chat")

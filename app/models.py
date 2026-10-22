@@ -171,3 +171,22 @@ class RouteCache(Base):
     key: Mapped[str] = mapped_column(String(120), primary_key=True)
     minutes: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class AIUsage(Base):
+    """One AI request (overview or question): who asked, on what, and what it cost."""
+    __tablename__ = "ai_usage"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    user_email: Mapped[str | None] = mapped_column(String(200), index=True)  # from Cloudflare Access; None on LAN
+    listing_id: Mapped[int | None] = mapped_column(ForeignKey("listings.id", ondelete="SET NULL"))
+    kind: Mapped[str] = mapped_column(String(16))  # overview|ask
+    question: Mapped[str | None] = mapped_column(String(300))
+    provider: Mapped[str | None] = mapped_column(String(16))
+    model: Mapped[str | None] = mapped_column(String(64))
+    ok: Mapped[bool] = mapped_column(Boolean, default=True)
+    error: Mapped[str | None] = mapped_column(String(300))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)  # includes cache reads/writes
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float | None] = mapped_column(Float)  # CLI reports an API-equivalent cost
+    duration_ms: Mapped[int | None] = mapped_column(Integer)

@@ -44,4 +44,4 @@
   </section>
 </div>
 {% endblock %}
-{% block scripts %}<script>window.PROFILE = {{ profile.model_dump(mode='json')|tojson }};</script><script src="/static/listings.js"></script>{% endblock %}
+{% block scripts %}<script>window.PROFILE = {{ profile.model_dump(mode='json')|tojson }};</script><script src="/static/listings.js?v={{ v }}"></script>{% endblock %}

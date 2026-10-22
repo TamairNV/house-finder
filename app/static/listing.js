@@ -209,16 +209,28 @@ function setupGallery(photos) {
 }
 
 // AI overview + questions. The overview and Q&A are saved on the listing so everyone sees them.
+// AI answers come short-first: the part after the marker sits behind "Show more".
+// Older answers without the marker get clamped instead when they're long.
+const MORE = /\n?\s*<!--\s*more\s*-->\s*\n?/i;
+function mdMore(text) {
+  const [short, ...rest] = (text || "").split(MORE);
+  const more = rest.join("\n").trim();
+  if (more) return `<div class="md">${md(short)}</div><div class="md more-body" hidden>${md(more)}</div>
+    <button class="link more-btn" type="button">Show more</button>`;
+  if (short.length > 450 || short.split("\n").length > 10) return `<div class="md clamp">${md(short)}</div><button class="link more-btn" type="button">Show more</button>`;
+  return `<div class="md">${md(short)}</div>`;
+}
+
 function renderAI(l) {
   const box = document.getElementById("ai");
   if (!l.ai_enabled && !l.ai_overview) { box.remove(); return; }  // AI not set up: keep it out of the way
-  const chat = (l.ai_chat || []).map((t) => `<div class="qa"><div class="q">${esc(t.q)}</div><div class="a md">${md(t.a)}</div></div>`).join("");
+  const chat = (l.ai_chat || []).map((t) => `<div class="qa"><div class="q">${esc(t.q)}</div><div class="a">${mdMore(t.a)}</div></div>`).join("");
   const SUGGEST = ["Is it worth the price?", "How big is the living space?", "What should we check at the viewing?", "How's the kitchen?"];
   box.innerHTML = `
     <div class="ai-head"><h3>✨ AI overview</h3><div class="spacer"></div>
       ${l.ai_overview ? `<span class="muted" style="font-size:12px">${ago(l.ai_overview_at)}</span>
         ${l.ai_enabled ? `<button class="link" id="ai-regen" title="Write a fresh overview">Redo</button>` : ""}` : ""}</div>
-    ${l.ai_overview ? `<div class="md">${md(l.ai_overview)}</div>`
+    ${l.ai_overview ? `<div class="ai-overview">${mdMore(l.ai_overview)}</div>`
       : `<p class="muted">Get a quick rundown of this place: what's good, red flags, what the photos show, the real cost and what to ask the agent.</p>
          <button class="primary" id="ai-gen">✨ Get AI overview</button>`}
     ${l.ai_enabled ? `
@@ -230,6 +242,15 @@ function renderAI(l) {
     <div class="suggest">${SUGGEST.map((s) => `<button class="chip" type="button" data-q="${esc(s)}">${esc(s)}</button>`).join("")}</div>
     ${(l.ai_chat || []).length ? `<button class="link" id="ai-clear" style="font-size:12px">Clear questions</button>` : ""}` : chat}`;
 
+  box.onclick = (e) => {
+    const b = e.target.closest(".more-btn");
+    if (!b) return;
+    const wrap = b.parentElement, body = wrap.querySelector(".more-body"), clamp = wrap.querySelector(".clamp");
+    const open = b.textContent === "Show more";
+    if (body) body.hidden = !open;
+    if (clamp) clamp.classList.toggle("open", open);
+    b.textContent = open ? "Show less" : "Show more";
+  };
   const busy = (btn, on, label) => {
     btn.disabled = on;
     if (on) { btn.dataset.label = btn.innerHTML; btn.innerHTML = `<span class="spin"></span>${label}`; }

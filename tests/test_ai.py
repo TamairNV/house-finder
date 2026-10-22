@@ -135,7 +135,9 @@ def test_cli_backend(session, monkeypatch):
     def fake_run(cmd, input, **kw):
         seen["cmd"], seen["msg"], seen["cwd"] = cmd, json.loads(input), kw["cwd"]
         out = [{"type": "system", "subtype": "init"},
-               {"type": "result", "subtype": "success", "is_error": False, "result": "Yes, two bathrooms."}]
+               {"type": "result", "subtype": "success", "is_error": False, "result": "Yes, two bathrooms.",
+                "usage": {"input_tokens": 10, "cache_read_input_tokens": 1000, "output_tokens": 50},
+                "total_cost_usd": 0.0123, "duration_ms": 4321, "modelUsage": {"claude-opus-5-5": {}}}]
         return subprocess.CompletedProcess(cmd, 0, "\n".join(map(json.dumps, out)), "")
 
     monkeypatch.setattr(ai.subprocess, "run", fake_run)
@@ -148,7 +150,9 @@ def test_cli_backend(session, monkeypatch):
     assert blocks[0]["type"] == "image" and blocks[0]["source"]["type"] == "base64"
     text = blocks[-1]["text"]
     assert text.startswith("(1 photo of") and "earlier overview" in text and "A yard." in text
-    assert text.rstrip().endswith("(Answer concisely, in Markdown if it helps.)") and "Latest question (answer this)\nHow many bathrooms?" in text
+    assert text.rstrip().endswith(ai.ASK_SUFFIX.strip()) and "Latest question (answer this)\nHow many bathrooms?" in text
+    assert ai.last_usage() == {"provider": "claude_cli", "model": "claude-opus-5-5", "input_tokens": 1010,
+                               "output_tokens": 50, "cost_usd": 0.0123, "duration_ms": 4321}
 
 
 def test_cli_errors(monkeypatch):
@@ -164,3 +168,34 @@ def test_cli_errors(monkeypatch):
             assert err in str(e)
         else:
             raise AssertionError("expected AIError")
+
+
+
+def test_ai_usage_is_logged_and_admin_only(session, monkeypatch):
+    st = get_settings()
+    monkeypatch.setattr(st, "ai_provider", "api")
+    monkeypatch.setattr(st, "anthropic_api_key", "sk-test")
+    monkeypatch.setattr(st, "admin_emails", "boss@example.com")
+    l, _ = _listing(session)
+    session.commit()
+    calls = iter(["Short.\n<!-- more -->\nLong.", ai.AIError("nope")])
+
+    def fake_call(system, messages, max_tokens=4000):
+        ai._set_usage(provider="api", model="m", input_tokens=100, output_tokens=20)
+        r = next(calls)
+        if isinstance(r, Exception):
+            raise r
+        return r
+
+    monkeypatch.setattr(ai, "_call", fake_call)
+    boss = {"Cf-Access-Authenticated-User-Email": "Boss@example.com"}
+    pal = {"Cf-Access-Authenticated-User-Email": "pal@example.com"}
+    with TestClient(app) as c:
+        assert c.post(f"/api/listings/{l.id}/ai/overview", headers=pal).status_code == 200
+        assert c.post(f"/api/listings/{l.id}/ai/ask", json={"question": "Garden?"}, headers=pal).status_code == 502
+        assert c.get("/api/ai/usage", headers=pal).status_code == 403
+        d = c.get("/api/ai/usage", headers=boss).json()
+    assert [(r["kind"], r["user"], r["ok"]) for r in d["rows"]] == [("ask", "pal@example.com", False), ("overview", "pal@example.com", True)]
+    assert d["rows"][0]["question"] == "Garden?" and d["rows"][0]["error"] == "nope"
+    assert d["people"] == [{"user": "pal@example.com", "requests": 2, "failed": 1, "input_tokens": 200, "output_tokens": 40,
+                            "cost_usd": 0.0, "last": d["rows"][0]["at"]}]

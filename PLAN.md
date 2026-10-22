@@ -310,6 +310,15 @@ docker compose logs -f                        # first scrape starts ~2 min after
   (`app/access.py`, `/api/access`). Needs HF_CF_API_TOKEN (Access: Apps and Policies: Edit). Only HF_ADMIN_EMAILS can
   edit, identified by the Cf-Access-Authenticated-User-Email header (so LAN access without Cloudflare can't edit).
 
+## 12d. AI log, short answers, mobile settings (2026-10-22)
+
+- Every AI request is logged to `ai_usage` (who from the Cf-Access email, listing, kind, question, tokens, CLI's
+  API-equivalent cost, duration, errors). `/ai-log` page + `GET /api/ai/usage` are admin-only (HF_ADMIN_EMAILS).
+- AI answers are short-first: prompts ask for a short part, then `<!-- more -->`, then detail; the UI shows the short
+  part with "Show more". Older long answers without the marker are clamped.
+- Static assets are cache-busted with `?v=` (hash of static file mtimes) because Cloudflare/browsers cached old CSS/JS.
+- Notes, stars, status and AI results are shared by everyone (one group board); only votes are per person.
+
 ## 13. Session log
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with
