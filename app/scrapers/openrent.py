@@ -107,5 +107,15 @@ class OpenRentScraper(CardScraper):
         m = re.search(r"(\d+)\s*bathrooms?\b", page, re.I)
         if m:
             r.bathrooms = float(m.group(1))
+        # Gallery: og:image/meta images can belong to an older listing id of the same property, and the
+        # gallery uses protocol-relative URLs (which image_urls misses), so read the lightbox links.
+        gallery = []
+        for a in soup.select("a.lightbox_item[href]"):
+            u = a["href"].strip()
+            u = "https:" + u if u.startswith("//") else u.replace("http://", "https://", 1)
+            if "imagescdn.openrent.co.uk/listings/" in u and u not in gallery:
+                gallery.append(u)
+        if gallery:
+            r.photos = gallery
         # Detail-page date beats the relative-days value from the search arrays
         return r

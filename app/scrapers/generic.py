@@ -64,7 +64,7 @@ class CardScraper(Scraper):
 
         avail = pv("available from", "available", "move in", "tenancy start", "let available date")
         if avail:
-            if re.match(r"\s*(now|immediately|today)", avail, re.I):
+            if re.search(r"\b(now|immediately|today)\b", avail, re.I):
                 r.available_from, r.available_now = self.today, True
             else:
                 r.available_from = parse_date_fragment(avail, self.today)

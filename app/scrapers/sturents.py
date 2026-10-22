@@ -76,6 +76,8 @@ class StuRentsScraper(CardScraper):
                 d = json.loads(htmllib.unescape(a["data-house"]))
             except (json.JSONDecodeError, KeyError):
                 continue
+            if not isinstance(d, dict) or not d:
+                continue  # empty data-house="[]" on template/placeholder anchors
             href = a.get("href") or d.get("url") or ""
             m = re.search(DETAIL_RE, href)
             lid = str(d.get("house_id") or (m.group(1) if m else ""))
@@ -137,6 +139,14 @@ class StuRentsScraper(CardScraper):
             low = bills.lower()
             r.bills_included = False if ("no bills" in low or "not included" in low) else (
                 True if "all bills" in low or "included" in low and "no " not in low else detect_bills_included(bills))
+        # The generic label scan picks up "Deposit:" lines inside the description (e.g. a NOPOSIT fee);
+        # the availability list has the real one: <strong>Deposit: </strong> £0 pp
+        r.deposit = None
+        for strong in soup.find_all("strong"):
+            if text_of(strong).lower().startswith("deposit"):
+                dep = parse_money(text_of(strong.parent))
+                r.deposit = dep or None  # £0 means "not stated" more often than "no deposit"
+                break
         photos = [u for u in image_urls(html, "public.sturents.com/photos")]
         if photos:
             r.photos = photos

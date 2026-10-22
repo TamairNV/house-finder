@@ -123,13 +123,14 @@ class AFSScraper(CardScraper):
         which = str(bills.get("whichBillsAreIncluded") or "").lower()
         r.bills_included = True if which == "all" else (False if which in ("none", "some") else None)
         quote = bills.get("billsPackageQuote") or {}
-        if quote.get("totalBillsPerWeek"):
-            r.raw = {"bills_package_pppw": to_float(quote["totalBillsPerWeek"])}
-            r.card_text = f"bills package £{quote['totalBillsPerWeek']} pppw"
+        quoted = to_float(quote.get("totalBillsPerWeek"))
+        if quoted:  # AFS sends "£0.00" when there is no quote
+            r.raw = {"bills_package_pppw": quoted}
+            r.card_text = f"bills package £{quoted:.2f} pppw"
         rent = to_float(first(d, "price.rentPerWeekFrom"))
         if rent:
             r.price_amount, r.price_period, r.price_per_person = rent, "pw", True
-        r.deposit = to_float(first(d, "price.deposit"))
+        r.deposit = to_float(first(d, "price.deposit")) or None  # 0 = not stated
         r.photos = [i.get("url") for i in (d.get("images") or []) if isinstance(i, dict) and i.get("url")]
         r.lat = to_float(first(d, "coordinates.latitude"))
         r.lng = to_float(first(d, "coordinates.longitude"))

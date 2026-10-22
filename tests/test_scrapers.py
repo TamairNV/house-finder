@@ -272,3 +272,76 @@ def test_search_urls():
     assert "REGION%5E984" in get_scraper("rightmove").search_url(p, loc, 1) and "index=24" in get_scraper("rightmove").search_url(p, loc, 1)
     assert get_scraper("openrent").search_url(p, loc, 1) is None
     assert get_scraper("spareroom").search_url(p, loc, 2).endswith("/flatshare/newcastle_upon_tyne/page3")
+
+
+# ---------------------------------------------------------------- regressions from real pages (2026-10-22)
+
+def test_sturents_search_skips_empty_data_house():
+    # Real landing pages carry template anchors with data-house="[]" which used to crash parse_search.
+    house = {"beds": "6 beds", "house_id": 426309, "price": 158, "title": "Sandyford Road", "from": "1 Aug 2027"}
+    html = ('<a class="js-listing-item" data-house="[]" href="#">tpl</a>'
+            f'<a href="https://sturents.com/student-accommodation/newcastle-upon-tyne/house/sandyford-road/426309?contract=628800" '
+            f'data-house="{htmllib.escape(json.dumps(house))}">x</a>')
+    [r] = get_scraper("sturents").parse_search(html, "https://sturents.com")
+    assert r.source_id == "426309" and r.bedrooms == 6
+
+
+def test_sturents_deposit_from_availability_not_description():
+    detail = """<div class="description">Deposit:
+      No Deposit Option Available (NOPOSIT) - £198 fee on signing.</div>
+      <ul><li><p class="new--paragraph"><strong>Deposit: </strong> £500 pp </p></li></ul>"""
+    d = get_scraper("sturents").parse_detail(detail, RawListing(source="sturents", source_id="1", url="u"))
+    assert d.deposit == 500
+
+
+def test_openrent_detail_photos_from_gallery_not_meta():
+    # og:image pointed at an older listing id; the gallery uses protocol-relative lightbox links.
+    html = """<meta property="og:image" content="http://imagescdn.openrent.co.uk/listings/796873/old.JPG"/>
+      <h1>4 Bed Terraced House, Westgate Hill Terrace, NE4</h1>
+      <a href="//imagescdn.openrent.co.uk/listings/3077704/a.JPG" class="lightbox_item d-block"><img src="//imagescdn.openrent.co.uk/listings/3077704/a.JPG"></a>
+      <a href="//imagescdn.openrent.co.uk/listings/796873/b.JPG" class="lightbox_item d-block"></a>
+      <a href="//imagescdn.openrent.co.uk/listings/3077704/a.JPG" class="lightbox_item d-block"></a>"""
+    r = get_scraper("openrent").parse_detail(html, RawListing(source="openrent", source_id="3077704", url="u"))
+    assert r.photos == ["https://imagescdn.openrent.co.uk/listings/3077704/a.JPG",
+                        "https://imagescdn.openrent.co.uk/listings/796873/b.JPG"]
+
+
+def test_afs_zero_bills_quote_and_deposit_ignored():
+    d = {"id": "327356", "bills": {"whichBillsAreIncluded": "none", "billsPackageQuote": {"totalBillsPerWeek": "£0.00"}},
+         "price": {"rentPerWeekFrom": 125, "deposit": 0}, "occupancy": {"total": 4}}
+    html = nd({"props": {"pageProps": {"viewModel": {"propertyDetails": d}}}})
+    r = get_scraper("afs").parse_detail(html, RawListing(source="afs", source_id="327356", url="u"))
+    assert r.deposit is None and "bills_package_pppw" not in r.raw and "£0" not in r.card_text
+    assert r.price_amount == 125 and r.price_per_person
+
+
+def _sr_card(lid, room_text, rate, desc="", period="pcm", rooms=""):
+    return f"""<li class="listing-result" data-listing-id="{lid}" data-listing-ad-headline-rate="&pound;{rate}"
+        data-listing-ad-headline-rate-period="{period}" data-listing-property-type="house" data-listing-rooms-in-property="{rooms}">
+      <article class="listing-card"><a class="listing-card__link" href="/flatshare/tyne_and_wear/heaton/{lid}?listing_click=1">
+      <h2 class="listing-card__title">Ad {lid}</h2></a>
+      <p class="listing-card__room-type"><span class="listing-card__room offered">{room_text}</span>
+      <span class="listing-card__availability"> - Available now</span></p>
+      <p class="listing-card__short_description">{desc}</p></article></li>"""
+
+
+def test_spareroom_single_room_in_big_house_is_skipped_but_multi_room_kept():
+    html = "<ul>" + _sr_card("11599924", "Double room", 470, "one final double bedroom available in this 5 bed property") \
+        + _sr_card("18330159", "6 doubles", 700, rooms="7") + _sr_card("18470768", "3 bed flat", "1,300") + "</ul>"
+    items = {r.source_id: r for r in get_scraper("spareroom").parse_search(html, "https://www.spareroom.co.uk")}
+    assert set(items) == {"18330159", "18470768"}
+    multi, whole = items["18330159"], items["18470768"]
+    assert multi.bedrooms == 6 and multi.price_amount == 700 and multi.price_per_person
+    assert whole.bedrooms == 3 and whole.price_amount == 1300 and not whole.price_per_person
+
+
+def test_spareroom_detail_room_rents_and_available_now():
+    html = """<section class="feature feature--price_room_only"><dl class="feature-list">
+      <dt class="feature-list__key">&pound;750 pcm</dt><dd class="feature-list__value">double (En suite)</dd>
+      <dt class="feature-list__key">&pound;700 pcm</dt><dd class="feature-list__value">double</dd></dl></section>
+      <section class="feature feature--availability"><dl class="feature-list">
+      <dt class="feature-list__key">Available</dt><dd class="feature-list__value">Available now</dd></dl></section>"""
+    s = get_scraper("spareroom")
+    r = s.parse_detail(html, RawListing(source="spareroom", source_id="1", url="u"))
+    assert r.price_amount == 700 and r.price_period == "pcm" and r.price_per_person
+    assert r.available_now and r.available_from == s.today
