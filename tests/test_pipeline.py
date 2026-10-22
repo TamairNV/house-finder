@@ -246,3 +246,21 @@ def test_sitemap_stubs_only_stored_when_live_and_priced(session, monkeypatch):
     session.expire_all()
     l = session.scalars(select(Listing)).one()
     assert l.bedrooms == 4 and l.rent_pppw == 120 and l.site_status == "active"
+
+
+def test_ors_pauses_on_quota_exceeded(monkeypatch):
+    import httpx
+    from app import geo
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "ors_api_key", "k")
+    monkeypatch.setattr(geo, "_ors_paused_until", 0.0)
+    calls = []
+
+    def fake_post(url, **kw):
+        calls.append(url)
+        return httpx.Response(403, text='{"error":"Quota exceeded"}', request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(geo.httpx, "post", fake_post)
+    assert geo.ors_minutes((54.98, -1.61), [(54.97, -1.62)], "walk") is None
+    assert geo.ors_minutes((54.98, -1.61), [(54.97, -1.62)], "walk") is None
+    assert len(calls) == 1

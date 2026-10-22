@@ -131,6 +131,10 @@ def ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], m
             _ors_paused_until = time.time() + 300
             log.warning("ORS rate limit hit; using distance estimates for 5 minutes")
             return None
+        if r.status_code == 403 and "quota" in r.text.lower():
+            _ors_paused_until = time.time() + 3 * 3600  # daily allowance used up: don't keep trying all day
+            log.warning("ORS daily quota used up; using distance estimates for 3 hours")
+            return None
         r.raise_for_status()
         durs = r.json()["durations"][0]
         return [round(d / 60, 1) if d is not None else None for d in durs]
