@@ -47,7 +47,7 @@ function bathHint() {
 
 function renderPeople() {
   $("people").innerHTML = P.people.map((p, pi) => `<div class="person" data-pi="${pi}">
-    <div style="display:flex;gap:8px;margin-bottom:8px"><input data-pf="name" value="${esc(p.name)}" placeholder="Name">
+    <div class="person-head"><input data-pf="name" value="${esc(p.name)}" placeholder="Name">
       <input data-pf="email" value="${esc(p.email || "")}" placeholder="Email (optional)">
       <button class="small danger" data-act="del-person">Remove</button></div>
     ${(p.places || []).map((pl, li) => `<div class="place-row" data-li="${li}">

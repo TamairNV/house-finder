@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Houses">
+  <link rel="manifest" href="/static/manifest.webmanifest" crossorigin="use-credentials">
+  <link rel="icon" href="/static/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <title>{% block title %}House finder{% endblock %}</title>
   <link rel="stylesheet" href="/static/app.css">
   <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
@@ -24,6 +30,11 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<nav class="tabbar" aria-label="Main">
+  <a href="/" class="{{ 'active' if page in ('listings', 'listing') }}"><span>🏠</span>Listings</a>
+  <a href="/settings" class="{{ 'active' if page == 'settings' }}"><span>⚙️</span>Settings</a>
+  <a href="/status" class="{{ 'active' if page == 'status' }}"><span>📊</span>Status</a>
+</nav>
 {% block scripts %}{% endblock %}
 </body>
 </html>

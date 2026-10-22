@@ -44,14 +44,42 @@ function queryString(st) {
   return p.toString();
 }
 
+// How many filters differ from the defaults (shown as a badge on the mobile Filters button).
+function activeFilterCount(st) {
+  let n = FIELDS.filter((f) => st[f] !== "" && st[f] != null && !(f === "min_score" && String(st[f]) === "0")).length;
+  n += ["favourite", "has_photos", "include_inactive", "include_duplicates"].filter((f) => st[f]).length;
+  n += st.passing ? 0 : 1;
+  n += ["status", "source", "area"].filter((g) => st[g].length).length;
+  return n;
+}
+
 async function refresh() {
   const st = readFilters();
   saveState(st);
   const data = await api("/api/listings?" + queryString(st));
   items = data.items;
   document.getElementById("count").textContent = `${data.count} place${data.count === 1 ? "" : "s"}`;
+  document.getElementById("filters-done").textContent = `Show ${data.count} place${data.count === 1 ? "" : "s"}`;
+  const active = activeFilterCount(st);
+  const badge = document.getElementById("filters-badge");
+  badge.hidden = !active;
+  badge.textContent = active;
   render();
+  restoreScroll();
 }
+
+// Coming back from a listing: put the list where it was.
+const SCROLL_KEY = "hf.listScroll";
+let scrollRestored = false;
+function restoreScroll() {
+  if (scrollRestored) return;
+  scrollRestored = true;
+  try {
+    const y = Number(sessionStorage.getItem(SCROLL_KEY));
+    if (y && performance.getEntriesByType("navigation")[0]?.type === "back_forward") window.scrollTo(0, y);
+  } catch (_) {}
+}
+addEventListener("pagehide", () => { try { sessionStorage.setItem(SCROLL_KEY, String(scrollY)); } catch (_) {} });
 
 function render() {
   const el = document.getElementById("results");
@@ -60,9 +88,40 @@ function render() {
     return;
   }
   if (view === "grid") el.innerHTML = `<div class="grid">${items.map(cardHtml).join("")}</div>`;
-  else if (view === "table") el.innerHTML = tableHtml();
+  else if (view === "table") el.innerHTML = `<div class="table-wrap">${tableHtml()}</div>`;
   else renderMap(el);
 }
+
+function stepPhoto(card, dir) {
+  const l = items.find((x) => x.id === Number(card.dataset.id));
+  const g = card.querySelector(".gallery");
+  if (!l || (l.photos || []).length < 2) return;
+  const i = (Number(g.dataset.i) + dir + l.photos.length) % l.photos.length;
+  g.dataset.i = i;
+  const im = g.querySelector("img");
+  im.classList.add("swap");
+  const next = new Image();
+  next.onload = next.onerror = () => { im.src = next.src; im.style.visibility = ""; im.classList.remove("swap"); };
+  next.src = img(l.photos[i]);
+  g.querySelector(".counter").textContent = `${i + 1}/${l.photos.length}`;
+}
+
+// Swipe left/right on a card photo to flip through its pictures.
+let touch = null;
+document.addEventListener("touchstart", (e) => {
+  const g = e.target.closest(".card .gallery");
+  touch = g ? { g, x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+}, { passive: true });
+document.addEventListener("touchend", (e) => {
+  if (!touch) return;
+  const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    stepPhoto(touch.g.closest(".card"), dx < 0 ? 1 : -1);
+    const a = touch.g.querySelector("a");
+    if (a) { const block = (ev) => { ev.preventDefault(); a.removeEventListener("click", block); }; a.addEventListener("click", block); setTimeout(() => a.removeEventListener("click", block), 400); }
+  }
+  touch = null;
+}, { passive: true });
 
 const isNew = (l) => l.first_seen && Date.now() - new Date(l.first_seen + "Z") < 48 * 3600 * 1000;
 
@@ -177,7 +236,13 @@ async function init() {
     debounced();
   });
   document.getElementById("sort").addEventListener("change", refresh);
-  document.getElementById("filters-toggle").addEventListener("click", () => document.getElementById("filters").classList.toggle("open"));
+  const sheet = (open) => {
+    document.getElementById("filters").classList.toggle("open", open);
+    document.body.classList.toggle("noscroll", open && matchMedia("(max-width: 900px)").matches);
+  };
+  document.getElementById("filters-toggle").addEventListener("click", () => sheet(!document.getElementById("filters").classList.contains("open")));
+  document.getElementById("filters-close").addEventListener("click", () => sheet(false));
+  document.getElementById("filters-done").addEventListener("click", () => { sheet(false); window.scrollTo({ top: 0 }); });
   document.getElementById("view").addEventListener("click", (e) => { if (e.target.dataset.v) setView(e.target.dataset.v); });
   document.getElementById("reset").addEventListener("click", () => { saveState({ view }); location.reload(); });
 
@@ -191,16 +256,7 @@ async function init() {
     const l = items.find((x) => x.id === Number(card.dataset.id));
     if (act === "prev" || act === "next") {
       e.preventDefault();
-      const g = card.querySelector(".gallery");
-      let i = Number(g.dataset.i) + (act === "next" ? 1 : -1);
-      i = (i + l.photos.length) % l.photos.length;
-      g.dataset.i = i;
-      const im = g.querySelector("img");
-      im.classList.add("swap");
-      const next = new Image();
-      next.onload = next.onerror = () => { im.src = next.src; im.style.visibility = ""; im.classList.remove("swap"); };
-      next.src = img(l.photos[i]);
-      g.querySelector(".counter").textContent = `${i + 1}/${l.photos.length}`;
+      stepPhoto(card, act === "next" ? 1 : -1);
     } else if (act === "fav") {
       l.favourite = !l.favourite;
       await patchListing(l.id, { favourite: l.favourite });

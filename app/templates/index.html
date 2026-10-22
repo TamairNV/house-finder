@@ -2,7 +2,7 @@
 {% block content %}
 <div class="layout">
   <aside class="panel filters" id="filters">
-    <h3>Filters</h3>
+    <div class="sheet-head"><h3>Filters</h3><button type="button" class="sheet-close" id="filters-close" aria-label="Close filters">✕</button></div>
     <div class="field"><label>Search</label><input type="text" id="f-q" placeholder="street, area, notes…"></div>
     <div class="field"><label class="inline"><input type="checkbox" id="f-passing" checked> Only places that fit my rules</label></div>
     <div class="field"><label>Max £ per person per week (inc bills)</label><input type="number" id="f-max_pppw" placeholder="{{ profile.budget_max_pppw|int }}"></div>
@@ -19,14 +19,14 @@
     <div class="field"><label>Areas</label><div class="checklist" id="f-area"></div></div>
     <div class="field"><label class="inline"><input type="checkbox" id="f-include_inactive"> Show let agreed / removed</label>
       <label class="inline"><input type="checkbox" id="f-include_duplicates"> Show duplicates</label></div>
-    <button id="reset">Reset filters</button>
+    <div class="sheet-foot"><button id="reset">Reset</button><button class="primary" id="filters-done" type="button">Show places</button></div>
   </aside>
   <section>
     <div class="toolbar">
-      <button class="filters-toggle" id="filters-toggle">Filters</button>
+      <button class="filters-toggle" id="filters-toggle">⚙︎ Filters<span class="badge" id="filters-badge" hidden></span></button>
       <span class="count" id="count">Loading…</span>
       <div class="spacer"></div>
-      <label>Sort <select id="sort">
+      <label class="sort-label"><span>Sort</span> <select id="sort">
         <option value="score">Best match</option>
         <option value="price">Cheapest</option>
         <option value="price_desc">Most expensive</option>

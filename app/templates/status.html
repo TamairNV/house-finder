@@ -10,8 +10,8 @@
   <div class="panel"><h3>Last 24 hours</h3><div id="events" class="kv"></div></div>
 </div>
 <div class="panel" style="margin-top:16px"><h3>Scrape runs</h3>
-  <table class="list"><thead><tr><th>Started</th><th>Site</th><th>Result</th><th>Requests</th><th>Found</th><th>New</th><th>Updated</th><th>Error</th></tr></thead><tbody id="runs"></tbody></table></div>
+  <div class="table-wrap"><table class="list"><thead><tr><th>Started</th><th>Site</th><th>Result</th><th>Requests</th><th>Found</th><th>New</th><th>Updated</th><th>Error</th></tr></thead><tbody id="runs"></tbody></table></div></div>
 <div class="panel" style="margin-top:16px"><h3>Emails</h3>
-  <table class="list"><thead><tr><th>Sent</th><th>Type</th><th>Subject</th><th>Listings</th><th>Result</th></tr></thead><tbody id="emails"></tbody></table></div>
+  <div class="table-wrap"><table class="list"><thead><tr><th>Sent</th><th>Type</th><th>Subject</th><th>Listings</th><th>Result</th></tr></thead><tbody id="emails"></tbody></table></div></div>
 {% endblock %}
 {% block scripts %}<script src="/static/status.js"></script>{% endblock %}

@@ -12,12 +12,12 @@ async function load() {
   const w = window.PROFILE.weights || {};
   const bills = l.bills_breakdown || {};
   root.innerHTML = `
-  <div class="toolbar">
-    <a href="/">← All listings</a><div class="spacer"></div>
-    <button class="icon-btn ${l.favourite ? "on" : ""}" id="fav">★ Favourite</button>
+  <div class="toolbar detail-bar">
+    <a href="/" class="back" onclick="if (history.length > 1 && document.referrer.startsWith(location.origin + '/') && !document.referrer.includes('/listing/')) { history.back(); return false; }">← <span class="lbl">All listings</span></a><div class="spacer"></div>
+    <button class="icon-btn ${l.favourite ? "on" : ""}" id="fav" title="Favourite">★<span class="lbl"> Favourite</span></button>
     <select id="status">${["new", "shortlisted", "contacted", "viewing", "applied", "rejected", "hidden"].map((s) => `<option ${s === l.user_status ? "selected" : ""}>${s}</option>`).join("")}</select>
     <button id="share" title="Send to the group">Share</button>
-    <a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener">Open on ${SOURCE_LABEL[l.source] || l.source} ↗</a>
+    <a class="btn" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="lbl">Open on </span>${SOURCE_LABEL[l.source] || l.source} ↗</a>
   </div>
   <div class="detail">
     <div>
@@ -92,7 +92,7 @@ async function load() {
   document.getElementById("fav").onclick = async (e) => {
     l.favourite = !l.favourite;
     await patchListing(id, { favourite: l.favourite });
-    e.target.classList.toggle("on", l.favourite);
+    e.currentTarget.classList.toggle("on", l.favourite);
   };
   document.getElementById("status").onchange = async (e) => { await patchListing(id, { user_status: e.target.value }); toast("Saved"); };
   document.getElementById("save-notes").onclick = async () => { await patchListing(id, { notes: document.getElementById("notes").value }); toast("Notes saved"); };
