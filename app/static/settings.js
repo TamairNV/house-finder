@@ -141,6 +141,34 @@ function readRecipient(div) {
   return r;
 }
 
+// ------------------------------------------------------------ login allow-list
+async function loadAccess() {
+  const box = document.getElementById("access");
+  const a = await api("/api/access");
+  if (!a.configured) {
+    box.innerHTML = `<p class="muted">Not connected to Cloudflare yet. Add <code>HF_CF_API_TOKEN</code> (Access: Apps and Policies: Edit) to <code>.env</code> and restart.</p>`;
+    return;
+  }
+  if (a.error) { box.innerHTML = `<p class="err">${esc(a.error)}</p>`; return; }
+  box.innerHTML = `
+    <div class="access-list">${a.emails.map((e) => `<div class="access-row"><span>${esc(e)}${e === a.me ? ` <span class="muted">(you)</span>` : ""}</span>
+      ${a.can_edit && e !== a.me ? `<button class="small danger" data-rm="${esc(e)}">Remove</button>` : ""}</div>`).join("") || `<p class="muted">No emails yet.</p>`}</div>
+    ${a.other_rules ? `<p class="muted" style="font-size:12px">Plus ${a.other_rules} other rule(s) in the "${esc(a.policy)}" policy, managed in Cloudflare.</p>` : ""}
+    ${a.can_edit ? `<form id="access-add" class="ask" style="max-width:480px"><input type="email" name="email" required placeholder="friend@example.com"><button class="primary">Add</button></form>`
+      : `<p class="muted" style="font-size:12px">Only an admin can change this list.</p>`}`;
+  box.querySelector("#access-add")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value.trim();
+    try { await api("/api/access", { method: "POST", body: { email } }); toast(`${email} can now log in`); loadAccess(); }
+    catch (err) { toast(err.message, 5000); }
+  });
+  box.querySelectorAll("[data-rm]").forEach((b) => b.addEventListener("click", async () => {
+    if (!confirm(`Remove ${b.dataset.rm}? They won't be able to log in any more.`)) return;
+    try { await api(`/api/access/${encodeURIComponent(b.dataset.rm)}`, { method: "DELETE" }); toast("Removed"); loadAccess(); }
+    catch (err) { toast(err.message, 5000); }
+  }));
+}
+
 async function init() {
   const data = await api("/api/profile");
   P = data.profile;
@@ -148,6 +176,7 @@ async function init() {
   $("bills-example").textContent = `~£${b.per_person_weekly.toFixed(0)} pppw (£${b.total_monthly.toFixed(0)}/month for the house)`;
   fill();
   loadRecipients();
+  loadAccess().catch((e) => (document.getElementById("access").innerHTML = `<p class="err">${esc(e.message)}</p>`));
   const st = await api("/api/status");
   $("smtp-state").textContent = st.smtp_configured ? "SMTP configured ✓" : "SMTP not configured: set HF_SMTP_* in .env on the server";
 

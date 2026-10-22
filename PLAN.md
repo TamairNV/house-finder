@@ -304,6 +304,12 @@ docker compose logs -f                        # first scrape starts ~2 min after
   in `.env` (CLAUDE_CODE_OAUTH_TOKEN), so the ~/.claude login folder never enters the internet-facing container.
 - Only ever user-triggered (button / question), never automatic per scrape, to keep subscription usage sane.
 
+## 12c. Login allow-list panel (2026-10-22)
+
+- Settings → "Who can log in" edits the Cloudflare Access Allow policy for HF_BASE_URL's host via the CF API
+  (`app/access.py`, `/api/access`). Needs HF_CF_API_TOKEN (Access: Apps and Policies: Edit). Only HF_ADMIN_EMAILS can
+  edit, identified by the Cf-Access-Authenticated-User-Email header (so LAN access without Cloudflare can't edit).
+
 ## 13. Session log
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with

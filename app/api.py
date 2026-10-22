@@ -4,13 +4,13 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, EmailStr, ValidationError
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import Session
 
-from . import ai, geo, scheduler
+from . import access, ai, geo, scheduler
 from .bills import estimate_bills
 from .config import get_settings
 from .db import get_session
@@ -398,6 +398,56 @@ def test_email(to: EmailStr):
 def scrape_now():
     started = scheduler.trigger_scrape_now()
     return {"started": started, "message": "Scrape started" if started else "A scrape is already running"}
+
+
+# ---------------------------------------------------------------- login allow-list (Cloudflare Access)
+
+def _viewer(request: Request) -> str | None:
+    """Email of the signed-in user, as asserted by Cloudflare Access (absent on LAN/Tailscale access)."""
+    e = request.headers.get("cf-access-authenticated-user-email")
+    return e.strip().lower() if e else None
+
+
+def _can_edit_access(request: Request) -> bool:
+    admins = get_settings().admins
+    return not admins or _viewer(request) in admins
+
+
+@router.get("/access")
+def get_access(request: Request):
+    out = {"configured": access.configured(), "can_edit": _can_edit_access(request), "me": _viewer(request),
+           "emails": [], "error": None}
+    if out["configured"]:
+        try:
+            out.update(access.list_emails())
+        except access.AccessError as e:
+            out["error"] = str(e)
+    return out
+
+
+class AccessEmail(BaseModel):
+    email: str
+
+
+@router.post("/access")
+def add_access(body: AccessEmail, request: Request):
+    if not _can_edit_access(request):
+        raise HTTPException(403, "Only an admin can change who can log in.")
+    try:
+        return {"emails": access.add_email(body.email)}
+    except access.AccessError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.delete("/access/{email}")
+def remove_access(email: str, request: Request):
+    if not _can_edit_access(request):
+        raise HTTPException(403, "Only an admin can change who can log in.")
+    protect = get_settings().admins | ({_viewer(request)} if _viewer(request) else set())
+    try:
+        return {"emails": access.remove_email(email, protect)}
+    except access.AccessError as e:
+        raise HTTPException(400, str(e))
 
 
 @router.get("/updated")

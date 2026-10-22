@@ -183,3 +183,5 @@ button.link { border: 0; background: none; color: var(--accent); padding: 2px 4p
 @media (max-width: 900px) { .hero .gnav { width: 38px; height: 38px; line-height: 38px; font-size: 22px; } }
 @media (prefers-reduced-motion: reduce) { .hero .track, .gallery img { transition: none; } }
 header.top .brand { white-space: nowrap; }
+.access-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); max-width: 480px; }
+.access-row span { overflow-wrap: anywhere; }

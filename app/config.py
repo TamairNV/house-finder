@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     claude_model: str | None = None  # CLI only, e.g. "opus" or "sonnet"; default = your Claude Code default
     claude_timeout: int = 240
 
+    # Login allow-list (Cloudflare Access) managed from Settings. Token needs Access: Apps and Policies: Edit.
+    cf_api_token: str | None = None
+    cf_account_id: str | None = None  # found automatically when the token sees one account
+    cf_access_app_id: str | None = None  # found from base_url's hostname
+    cf_access_policy_id: str | None = None  # first Allow policy on that app
+    admin_emails: str = ""  # comma separated; only these can edit the list (empty = anyone signed in)
+
     # Scraping
     scheduler_enabled: bool = True
     user_agent: str = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 "
@@ -61,6 +68,10 @@ class Settings(BaseSettings):
     def ai_key(self) -> str | None:
         import os
         return self.anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
+
+    @property
+    def admins(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
     @property
     def smtp_configured(self) -> bool:
