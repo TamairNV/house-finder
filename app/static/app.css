@@ -422,7 +422,7 @@ body { touch-action: pan-y pinch-zoom; }
 .fav-btn { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; min-height: 0 !important; padding: 0; border-radius: 50%; border: 0;
   background: rgba(255,255,255,.92); color: #9ca3af; font-size: 18px; line-height: 34px; box-shadow: 0 1px 4px rgba(0,0,0,.25); z-index: 2; }
 .fav-btn.on { color: #f59e0b; }
-.card.fav { outline: 0; box-shadow: 0 0 0 2px #f59e0b, var(--shadow); }
+.card.fav { outline: 2px solid #f59e0b; outline-offset: -1px; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); margin-top: auto; }
 .vote-pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: none; }
 .vote-pill button { border: 0; border-radius: 0; background: none; padding: 0 12px; min-height: 36px !important; display: inline-flex; align-items: center; gap: 5px; font-size: 15px; }
