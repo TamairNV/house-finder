@@ -202,10 +202,7 @@ function setupGallery(photos) {
 // AI overview + questions. The overview and Q&A are saved on the listing so everyone sees them.
 function renderAI(l) {
   const box = document.getElementById("ai");
-  if (!l.ai_enabled && !l.ai_overview) {
-    box.innerHTML = `<h3>✨ AI overview</h3><p class="muted">Add an Anthropic API key (<code>HF_ANTHROPIC_API_KEY</code> in <code>.env</code>) to get an AI rundown of each place and ask questions about it.</p>`;
-    return;
-  }
+  if (!l.ai_enabled && !l.ai_overview) { box.remove(); return; }  // AI not set up: keep it out of the way
   const chat = (l.ai_chat || []).map((t) => `<div class="qa"><div class="q">${esc(t.q)}</div><div class="a md">${md(t.a)}</div></div>`).join("");
   const SUGGEST = ["Is it worth the price?", "How big is the living space?", "What should we check at the viewing?", "How's the kitchen?"];
   box.innerHTML = `
