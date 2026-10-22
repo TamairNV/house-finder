@@ -87,10 +87,6 @@ def geocode_postcode(session: Session, postcode: str, client: httpx.Client | Non
         if r.status_code == 404:
             _cache_put(session, key, None, None)
             return None
-        if r.status_code == 429:
-            _ors_paused_until = time.time() + 300
-            log.warning("ORS rate limit hit; using distance estimates for 5 minutes")
-            return None
         r.raise_for_status()
         res = r.json().get("result") or {}
         lat, lng = res.get("latitude"), res.get("longitude")
@@ -131,6 +127,10 @@ def ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], m
     try:
         r = httpx.post(f"https://api.openrouteservice.org/v2/matrix/{ORS_PROFILES[mode]}",
                        json=body, headers={"Authorization": key}, timeout=30)
+        if r.status_code == 429:
+            _ors_paused_until = time.time() + 300
+            log.warning("ORS rate limit hit; using distance estimates for 5 minutes")
+            return None
         r.raise_for_status()
         durs = r.json()["durations"][0]
         return [round(d / 60, 1) if d is not None else None for d in durs]
