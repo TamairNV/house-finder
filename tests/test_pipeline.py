@@ -136,3 +136,30 @@ def test_add_missing_columns(tmp_path):
     db._add_missing_columns(eng)
     cols = {c["name"] for c in inspect(eng).get_columns("recipients")}
     assert {"digest_frequency", "instant_great", "min_score"} <= cols
+
+
+def test_run_source_persists_run_counts(session, monkeypatch):
+    # Regression: the ScrapeRun was expunged before commit, so /api/status showed ok=False, 0 found.
+    from app import pipeline
+    from app.models import ScrapeRun
+    from sqlalchemy import select
+
+    class FakeFetcher:
+        requests = 3
+
+        def close(self):
+            pass
+
+    class FakeScraper:
+        fetcher = FakeFetcher()
+
+        def search(self, profile, loc, pages):
+            yield RawListing(source="rightmove", source_id="1", url="u1", bedrooms=5, price_amount=130,
+                             price_period="pw", price_per_person=True)
+
+    monkeypatch.setattr(pipeline, "get_scraper", lambda name: FakeScraper())
+    session.commit()
+    pipeline.run_source("rightmove", Profile(), fetch_details=False)
+    session.expire_all()
+    run = session.scalars(select(ScrapeRun)).one()
+    assert run.ok and run.finished_at is not None and run.found == 1 and run.new == 1 and run.pages == 3

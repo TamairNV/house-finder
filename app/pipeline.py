@@ -336,6 +336,7 @@ def run_source(source: str, profile: Profile | None = None, max_pages: int | Non
         run = session.get(ScrapeRun, run_id)
         run.finished_at, run.ok, run.found, run.new, run.updated = utcnow(), ok, found, new, updated
         run.pages, run.error = scraper.fetcher.requests, error
+        session.flush()  # expunge() would otherwise drop these pending changes before the commit
         session.expunge(run)
     return run
 
