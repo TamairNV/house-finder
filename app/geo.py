@@ -19,8 +19,8 @@ POSTCODES_IO = "https://api.postcodes.io"
 
 # Rough door-to-door speeds used when no routing API is configured.
 # detour = road distance / straight-line distance, typical for UK cities.
-SPEEDS_KMH = {"walk": 4.8, "cycle": 15.0, "transit": 16.0, "drive": 22.0}
-DETOUR = {"walk": 1.3, "cycle": 1.25, "transit": 1.35, "drive": 1.4}
+SPEEDS_KMH = {"walk": 5.0, "cycle": 15.0, "transit": 16.0, "drive": 22.0}
+DETOUR = {"walk": 1.2, "cycle": 1.25, "transit": 1.35, "drive": 1.4}
 OVERHEAD_MIN = {"walk": 0.0, "cycle": 2.0, "transit": 8.0, "drive": 5.0}  # waiting, parking, locking bike
 
 

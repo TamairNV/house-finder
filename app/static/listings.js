@@ -72,7 +72,7 @@ function cardHtml(l) {
   const bathRatio = l.bathrooms && l.bedrooms ? ` (1:${(window.PROFILE.group_size / l.bathrooms).toFixed(1)})` : "";
   return `<article class="card ${l.favourite ? "fav" : ""} ${l.passes_filters ? "" : "failing"}" data-id="${l.id}">
     <div class="gallery" data-i="0">
-      ${photos.length ? `<a href="/listing/${l.id}"><img loading="lazy" src="${img(photos[0])}" alt=""></a>
+      ${photos.length ? `<a href="/listing/${l.id}"><img loading="lazy" src="${img(photos[0])}" alt="" onerror="this.style.visibility='hidden'"></a>
         ${photos.length > 1 ? `<button class="nav prev" data-act="prev">‹</button><button class="nav next" data-act="next">›</button>` : ""}
         <span class="counter">1/${photos.length}</span>` : `<a href="/listing/${l.id}" class="noimg">No photos</a>`}
       <span class="${scoreClass(l.score)}">${Math.round(l.score || 0)}</span>

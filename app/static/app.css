@@ -120,3 +120,6 @@ table.list img { width: 72px; height: 50px; object-fit: cover; border-radius: 6p
 .ok { color: var(--good); } .err { color: var(--bad); }
 .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
 pre.err { white-space: pre-wrap; font-size: 11px; max-width: 600px; }
+.form-row input:not([type=checkbox]), .form-row select { width: 100%; min-width: 0; }
+.form-row > * { min-width: 0; }
+.place-row input, .place-row select { min-width: 0; width: 100%; }

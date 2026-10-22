@@ -131,8 +131,9 @@ def extract_prices(text: str) -> list[PriceMention]:
             incl = False
         # "£139pppw (£166pppw inc bills)": the inc-bills phrase is *after* the 2nd
         # price; for the first price it is beyond the next "£" so not in after_short.
-        is_bills_cost = bool(_BILLS_COST_CTX.search(before[-25:]) or re.match(r"\s*(?:for\s+)?(?:bills|utilit)", after, re.I)
-                             or re.match(r"\s*\w*\s*bills?\s+package", after, re.I))
+        after_says_bills = bool(re.match(r"\s*(?:for\s+)?(?:bills|utilit)", after, re.I)
+                                or re.match(r"\s*\w*\s*bills?\s+package", after, re.I))
+        is_bills_cost = bool(_BILLS_COST_CTX.search(before[-25:]) or (after_says_bills and incl is not True))
         is_deposit = bool(_DEPOSIT_CTX.search(before[-20:]))
         # SpareRoom "(Equivalent to £366 per room)" — a per-person figure even
         # though the unit is missing; handled by caller if needed.
