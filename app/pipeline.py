@@ -143,6 +143,12 @@ def upsert(session: Session, raw: RawListing, profile: Profile) -> tuple[Listing
 
 # ------------------------------------------------------------------ enrich + score
 
+def _use_routing(listing: Listing, profile: Profile) -> bool:
+    """Only spend routing API calls on houses that are located precisely and the right size."""
+    return bool(get_settings().ors_api_key) and listing.lat is not None \
+        and listing.geo_precision in ("exact", "postcode") and listing.bedrooms in profile.allowed_bedrooms
+
+
 def enrich_and_score(session: Session, listing: Listing, profile: Profile, use_routing_api: bool = False) -> None:
     # Location: exact coords from the site, else postcode, else postcode district centroid.
     if listing.lat is None:
@@ -178,8 +184,7 @@ def enrich_and_score(session: Session, listing: Listing, profile: Profile, use_r
     # Commutes
     commutes = []
     if listing.lat is not None:
-        use_api = (use_routing_api or profile.use_routing_api) and bool(get_settings().ors_api_key) \
-            and listing.geo_precision in ("exact", "postcode") and listing.bedrooms in profile.allowed_bedrooms
+        use_api = (use_routing_api or profile.use_routing_api) and _use_routing(listing, profile)
         commutes = geo.commutes_for(session, listing.lat, listing.lng, profile.all_places(), use_api=use_api)
     listing.commutes = [c.to_dict() for c in commutes]
     listing.worst_commute_min = max((c.minutes for c in commutes), default=None)
@@ -202,8 +207,11 @@ def enrich_and_score(session: Session, listing: Listing, profile: Profile, use_r
 
 def rescore_all(session: Session, profile: Profile | None = None) -> int:
     profile = profile or load_profile(session)
+    listings = session.scalars(select(Listing)).all()
+    if profile.use_routing_api and get_settings().ors_api_key:
+        geo.prewarm_routes(session, [(l.lat, l.lng) for l in listings if _use_routing(l, profile)], profile.all_places())
     n = 0
-    for l in session.scalars(select(Listing)):
+    for l in listings:
         enrich_and_score(session, l, profile)
         n += 1
     dedupe(session)

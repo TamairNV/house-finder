@@ -318,6 +318,8 @@ docker compose logs -f                        # first scrape starts ~2 min after
   part with "Show more". Older long answers without the marker are clamped.
 - Static assets are cache-busted with `?v=` (hash of static file mtimes) because Cloudflare/browsers cached old CSS/JS.
 - Notes, stars, status and AI results are shared by everyone (one group board); only votes are per person.
+- Real commute times: HF_ORS_API_KEY set on server (2026-10-22). Re-score prewarms the route cache with one ORS matrix
+  call per place per 200 houses (`geo.prewarm_routes`); a 429 pauses ORS for 5 min and falls back to estimates.
 
 ## 13. Session log
 

@@ -178,3 +178,29 @@ def test_first_scrape_time_resumes_interval(session):
     session.add(ScrapeRun(source="rightmove", finished_at=datetime.now(tzmod.utc).replace(tzinfo=None) - timedelta(hours=1)))
     session.commit()
     assert timedelta(hours=2, minutes=55) < first_scrape_time(4, tz) - now < timedelta(hours=3, minutes=5)
+
+
+def test_rescore_batches_routing_calls(session, monkeypatch):
+    from app import geo
+    from app.config import get_settings
+    from sqlalchemy import select
+    from app.pipeline import rescore_all
+    monkeypatch.setattr(get_settings(), "ors_api_key", "k")
+    calls = []
+
+    def fake_ors(origin, dests, mode):
+        calls.append(len(dests))
+        return [12.0] * len(dests)
+
+    monkeypatch.setattr(geo, "ors_minutes", fake_ors)
+    p = profile(use_routing_api=True)
+    for i in range(5):
+        upsert(session, raw(source_id=str(i), url=f"https://x/{i}", lat=54.98 + i / 1000), p)
+    for l in session.scalars(select(Listing)):
+        l.geo_precision = "exact"
+    rescore_all(session, p)
+    assert calls == [5]  # one matrix call for all five houses, then everything comes from the cache
+    l = session.scalars(select(Listing)).first()
+    assert l.commutes[0]["minutes"] == 12.0 and not l.commutes[0]["estimated"]
+    rescore_all(session, p)
+    assert calls == [5]

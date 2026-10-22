@@ -87,6 +87,10 @@ def geocode_postcode(session: Session, postcode: str, client: httpx.Client | Non
         if r.status_code == 404:
             _cache_put(session, key, None, None)
             return None
+        if r.status_code == 429:
+            _ors_paused_until = time.time() + 300
+            log.warning("ORS rate limit hit; using distance estimates for 5 minutes")
+            return None
         r.raise_for_status()
         res = r.json().get("result") or {}
         lat, lng = res.get("latitude"), res.get("longitude")
@@ -112,10 +116,15 @@ def resolve_place(session: Session, place: Place) -> tuple[float, float] | None:
 ORS_PROFILES = {"walk": "foot-walking", "cycle": "cycling-regular", "drive": "driving-car"}
 
 
+ORS_CHUNK = 200  # destinations per matrix call (free plan allows 3500 elements per request)
+_ors_paused_until = 0.0  # set after a 429 so a rescore doesn't hammer the API
+
+
 def ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], mode: str) -> list[float | None] | None:
-    """openrouteservice matrix call (free key, 500 matrix requests/day)."""
+    """openrouteservice matrix call (free key: 500 matrix requests/day, 40/minute)."""
+    global _ors_paused_until
     key = get_settings().ors_api_key
-    if not key or mode not in ORS_PROFILES or not dests:
+    if not key or mode not in ORS_PROFILES or not dests or time.time() < _ors_paused_until:
         return None
     body = {"locations": [[origin[1], origin[0]]] + [[d[1], d[0]] for d in dests],
             "sources": [0], "destinations": list(range(1, len(dests) + 1)), "metrics": ["duration"]}
@@ -130,8 +139,36 @@ def ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], m
         return None
 
 
+def _route_key(origin: tuple[float, float], dest: tuple[float, float], mode: str) -> str:
+    return f"{mode}:{origin[0]:.4f},{origin[1]:.4f}>{dest[0]:.4f},{dest[1]:.4f}"
+
+
+def prewarm_routes(session: Session, origins: list[tuple[float, float]], people_places: list) -> int:
+    """Fill the route cache for many houses at once: one matrix call per place (per 200 houses) instead of one
+    call per house, which keeps a full re-score well inside the free ORS limits. Returns API calls made."""
+    calls = 0
+    for _, place in people_places:
+        coords = resolve_place(session, place)
+        if coords is None or place.mode not in ORS_PROFILES:
+            continue
+        missing = {_route_key(o, coords, place.mode): o for o in origins}
+        missing = {k: o for k, o in missing.items() if session.get(RouteCache, k) is None}
+        items = list(missing.items())
+        for i in range(0, len(items), ORS_CHUNK):
+            chunk = items[i:i + ORS_CHUNK]
+            # Place -> houses; walking/cycling times are near enough symmetric for a commute estimate.
+            res = ors_minutes(coords, [o for _, o in chunk], place.mode)
+            calls += 1
+            if res is None:
+                return calls
+            for (k, _), m in zip(chunk, res):
+                session.merge(RouteCache(key=k, minutes=m))
+        session.flush()
+    return calls
+
+
 def cached_route_minutes(session: Session, origin: tuple[float, float], dest: tuple[float, float], mode: str) -> float | None:
-    key = f"{mode}:{origin[0]:.4f},{origin[1]:.4f}>{dest[0]:.4f},{dest[1]:.4f}"
+    key = _route_key(origin, dest, mode)
     row = session.get(RouteCache, key)
     if row is not None:
         return row.minutes
