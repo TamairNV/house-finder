@@ -300,7 +300,8 @@ docker compose logs -f                        # first scrape starts ~2 min after
   Code headless (`claude -p`, stream-json, `--tools ""`, photos inlined as base64) on Tamair's Claude subscription.
   Tamair asked: use the subscription if possible; if it needs a paid key, keep the feature hidden (auto = hidden
   when neither is available).
-- On TNV-server the CLI is mounted into the container via `docker-compose.claude.yml` (runs as uid 1000).
+- On TNV-server only the CLI binary is mounted (`docker-compose.claude.yml`); auth is a `claude setup-token` token
+  in `.env` (CLAUDE_CODE_OAUTH_TOKEN), so the ~/.claude login folder never enters the internet-facing container.
 - Only ever user-triggered (button / question), never automatic per scrape, to keep subscription usage sane.
 
 ## 13. Session log
