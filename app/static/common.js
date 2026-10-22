@@ -112,3 +112,33 @@ async function refreshUpdated() {
   } catch (_) { /* header indicator is best-effort */ }
 }
 document.addEventListener("DOMContentLoaded", () => { refreshUpdated(); setInterval(refreshUpdated, 60000); });
+
+// ------------------------------------------------------------ group voting
+// Who's voting on this device: matched from the login email (person's email in Settings), else picked once.
+const groupNames = () => (window.PROFILE?.people || []).map((p) => p.name).filter(Boolean);
+function myName() {
+  if (window.ME) return window.ME;
+  try { const n = localStorage.getItem("hf.me"); return groupNames().includes(n) ? n : null; } catch (_) { return null; }
+}
+function setMyName(n) { try { localStorage.setItem("hf.me", n); } catch (_) {} }
+function whoPicker() {
+  if (window.ME) return `<span class="muted">Voting as <b>${esc(window.ME)}</b></span>`;
+  const me = myName();
+  return `<label class="who">Voting as <select data-act="who"><option value="">pick your name…</option>${groupNames().map((n) =>
+    `<option ${n === me ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></label>`;
+}
+// Thumbs for one person: click again to clear. Resolves to the listing's new votes.
+async function vote(l, value, person = myName()) {
+  if (!person) { toast("Pick your name first (Votes tab or the listing page)"); return null; }
+  const cur = (l.votes || {})[person] || 0;
+  const res = await patchListing(l.id, { vote: { person, value: cur === value ? 0 : value } });
+  l.votes = res.votes;
+  return l.votes;
+}
+// Little row of initials: green = 👍, red = 👎, grey = not voted yet.
+function voteFaces(l) {
+  return groupNames().map((n) => {
+    const v = (l.votes || {})[n] || 0;
+    return `<span class="face ${v > 0 ? "up" : v < 0 ? "down" : ""}" title="${esc(n)}: ${v > 0 ? "👍" : v < 0 ? "👎" : "not voted"}">${esc(n.slice(0, 2))}</span>`;
+  }).join("");
+}

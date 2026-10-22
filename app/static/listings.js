@@ -83,10 +83,11 @@ addEventListener("pagehide", () => { try { sessionStorage.setItem(SCROLL_KEY, St
 
 function render() {
   const el = document.getElementById("results");
-  if (!items.length) {
+  if (!items.length && view !== "votes") {
     el.innerHTML = `<div class="empty panel">Nothing matches yet. Try loosening the filters, or untick "Only places that fit my rules" to see everything scraped.<br><br><a href="/status">Check scraper status</a></div>`;
     return;
   }
+  if (view === "votes") { renderVotes(el); return; }
   if (view === "grid") el.innerHTML = `<div class="grid">${items.map(cardHtml).join("")}</div>`;
   else if (view === "table") el.innerHTML = `<div class="table-wrap">${tableHtml()}</div>`;
   else renderMap(el);
@@ -165,6 +166,7 @@ function cardHtml(l) {
     </div>
     <div class="actions">
       <button class="icon-btn ${l.favourite ? "on" : ""}" data-act="fav" title="Favourite">★</button>
+      ${groupNames().length ? voteButtons(l) : ""}
       <select data-act="status">${["new", "shortlisted", "contacted", "viewing", "applied", "rejected", "hidden"].map((s) => `<option ${s === l.user_status ? "selected" : ""}>${s}</option>`).join("")}</select>
       <div class="spacer"></div>
       <a href="${esc(l.url)}" target="_blank" rel="noopener" class="btn">Open on site ↗</a>
@@ -172,11 +174,17 @@ function cardHtml(l) {
   </article>`;
 }
 
+function voteButtons(l) {
+  const mine = (l.votes || {})[myName()] || 0;
+  return `<button class="icon-btn vote ${mine > 0 ? "on" : ""}" data-act="up" title="I like it">👍</button>
+    <button class="icon-btn vote ${mine < 0 ? "on" : ""}" data-act="down" title="Not for me">👎</button>`;
+}
+
 function voteChip(l) {
   const vals = Object.values(l.votes || {});
   if (!vals.length) return "";
   const up = vals.filter((v) => v > 0).length, down = vals.filter((v) => v < 0).length;
-  return `<span class="chip ${down ? "warn" : "good"}" title="${esc(Object.entries(l.votes).map(([k, v]) => `${k} ${v > 0 ? "👍" : "👎"}`).join(", "))}">👍${up}${down ? ` 👎${down}` : ""}</span>`;
+  return `<span class="chip vote-chip ${down ? "warn" : "good"}" title="${esc(Object.entries(l.votes).map(([k, v]) => `${k} ${v > 0 ? "👍" : "👎"}`).join(", "))}">👍${up}${down ? ` 👎${down}` : ""}</span>`;
 }
 
 function tableHtml() {
@@ -194,28 +202,86 @@ function tableHtml() {
   return `<table class="list"><thead><tr><th></th><th>Score</th><th>Place</th><th>£ pppw</th><th>Bed/Bath</th><th>Available</th><th>Worst commute</th><th>Site</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+const WALK_KMH = 4.8;
 function renderMap(el) {
-  el.innerHTML = `<div id="map"></div>`;
-  map = L.map("map");
+  el.innerHTML = `<div class="map-wrap"><div id="map"></div>
+    <div class="map-legend panel"><span><i class="dot great"></i>great</span><span><i class="dot ok"></i>fits rules</span><span><i class="dot meh"></i>doesn't fit</span>
+      <label class="inline"><input type="checkbox" id="rings" ${loadRings() ? "checked" : ""}> walk rings</label></div></div>`;
+  map = L.map("map", { zoomControl: !matchMedia("(max-width: 900px)").matches });
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  const great = window.PROFILE.email.great_score_threshold || 80;
   const pts = [];
-  items.filter((l) => l.lat != null).forEach((l) => {
-    const color = l.score >= (window.PROFILE.email.great_score_threshold || 80) ? "#059669" : l.passes_filters ? "#2563eb" : "#9ca3af";
-    const m = L.circleMarker([l.lat, l.lng], { radius: 9, color, fillColor: color, fillOpacity: 0.8, weight: 2 }).addTo(map);
-    m.bindPopup(`${l.photos?.length ? `<img src="${img(l.photos[0])}" style="width:220px;height:140px;object-fit:cover;border-radius:6px">` : ""}
-      <div><b><a href="/listing/${l.id}">${esc(l.title || l.address)}</a></b></div>
-      <div>${money(l.total_pppw)} pppw all-in · ${l.bedrooms} bed · ${l.bathrooms ?? "?"} bath · score ${Math.round(l.score || 0)}</div>
-      ${l.geo_precision !== "exact" ? `<div class="muted">approx. location</div>` : ""}`);
+  // Houses: price pills coloured by score, best ones drawn on top.
+  [...items].filter((l) => l.lat != null).sort((a, b) => (a.score || 0) - (b.score || 0)).forEach((l) => {
+    const cls = l.score >= great ? "great" : l.passes_filters ? "ok" : "meh";
+    const ups = Object.values(l.votes || {}).filter((v) => v > 0).length;
+    const icon = L.divIcon({ className: "", iconSize: null, iconAnchor: [0, 0],
+      html: `<div class="pin ${cls}${l.favourite ? " fav" : ""}">${l.favourite ? "★ " : ""}£${Math.round(l.total_pppw || 0)}${ups ? ` <small>👍${ups}</small>` : ""}</div>` });
+    L.marker([l.lat, l.lng], { icon, riseOnHover: true }).addTo(map).bindPopup(() => `<div class="map-pop">
+      ${l.photos?.length ? `<img src="${img(l.photos[0])}">` : ""}
+      <a class="title" href="/listing/${l.id}">${esc(l.title || l.address)}</a>
+      <div><b>${money(l.total_pppw)}</b> pppw all-in · ${l.bedrooms} bed · ${l.bathrooms ?? "?"} bath · score ${Math.round(l.score || 0)}</div>
+      <div class="commutes">${commuteChips(l)}</div>
+      ${groupNames().length ? `<div class="faces">${voteFaces(l)}</div>` : ""}
+      ${l.geo_precision !== "exact" ? `<div class="muted">Approximate location</div>` : ""}</div>`, { maxWidth: 260 });
     pts.push([l.lat, l.lng]);
   });
+  // People's places, with rough walking-time rings (straight line at walking pace).
+  const rings = L.layerGroup();
   (window.PROFILE.people || []).forEach((p) => (p.places || []).forEach((pl) => {
-    if (pl.lat != null) {
-      L.marker([pl.lat, pl.lng]).addTo(map).bindPopup(`${esc(p.name)}: ${esc(pl.label)}`);
-      pts.push([pl.lat, pl.lng]);
-    }
+    if (pl.lat == null) return;
+    const icon = L.divIcon({ className: "", iconSize: null, html: `<div class="place-pin">📍 ${esc(pl.label || p.name)}</div>` });
+    L.marker([pl.lat, pl.lng], { icon, zIndexOffset: 1000 }).addTo(map).bindPopup(`${esc(p.name)}: ${esc(pl.label)}`);
+    [10, 20, 30].forEach((min) => L.circle([pl.lat, pl.lng], { radius: (WALK_KMH * 1000 * min) / 60 / 1.25, color: "#2563eb", weight: 1,
+      opacity: 0.5, fill: min === 10, fillOpacity: 0.05, dashArray: "4 4", interactive: false }).addTo(rings));
+    pts.push([pl.lat, pl.lng]);
   }));
+  if (loadRings()) rings.addTo(map);
+  document.getElementById("rings").onchange = (e) => { saveRings(e.target.checked); e.target.checked ? rings.addTo(map) : rings.remove(); };
   if (pts.length) map.fitBounds(pts, { padding: [30, 30] });
   else map.setView([54.978, -1.6178], 13);
+}
+function loadRings() { try { return localStorage.getItem("hf.rings") !== "0"; } catch (_) { return true; } }
+function saveRings(on) { try { localStorage.setItem("hf.rings", on ? "1" : "0"); } catch (_) {} }
+
+// Votes view: everything anyone has voted on (or starred/shortlisted), ranked by the group's verdict.
+const ACTIVE_STATUSES = ["shortlisted", "contacted", "viewing", "applied"];
+async function renderVotes(el) {
+  el.innerHTML = `<p class="muted">Loading votes…</p>`;
+  const all = (await api("/api/listings?passing=false&include_inactive=true&limit=2000&sort=score")).items;
+  const names = groupNames(), me = myName();
+  const voted = all.filter((l) => Object.keys(l.votes || {}).length || l.favourite || ACTIVE_STATUSES.includes(l.user_status));
+  const net = (l) => Object.values(l.votes || {}).reduce((a, v) => a + v, 0);
+  voted.sort((a, b) => net(b) - net(a) || (b.score || 0) - (a.score || 0));
+  const todo = me ? voted.filter((l) => !(l.votes || {})[me]) : [];
+  const row = (l) => {
+    const waiting = names.filter((n) => !(l.votes || {})[n]);
+    const mine = (l.votes || {})[me] || 0;
+    return `<div class="vote-row" data-id="${l.id}">
+      ${l.photos?.length ? `<img loading="lazy" src="${img(l.photos[0])}">` : `<div class="noimg"></div>`}
+      <div class="vote-main">
+        <a class="title" href="/listing/${l.id}">${l.favourite ? "★ " : ""}${esc(l.title || l.address || "Listing")}</a>
+        <div class="muted">${money(l.total_pppw)} pppw · ${esc(l.area || "")}${l.site_status !== "active" ? ` · <span class="err">${esc(l.site_status.replace("_", " "))}</span>` : ""}</div>
+        <div class="faces">${voteFaces(l)}${waiting.length && waiting.length < names.length ? `<span class="muted waiting">waiting on ${esc(waiting.join(", "))}</span>` : ""}</div>
+      </div>
+      <div class="vote-side"><b class="net ${net(l) > 0 ? "up" : net(l) < 0 ? "down" : ""}">${net(l) > 0 ? "+" : ""}${net(l)}</b>
+        <div><button class="icon-btn vote ${mine > 0 ? "on" : ""}" data-act="up">👍</button><button class="icon-btn vote ${mine < 0 ? "on" : ""}" data-act="down">👎</button></div></div>
+    </div>`;
+  };
+  el.innerHTML = `<div class="votes-view">
+    <div class="panel votes-head">${whoPicker()}<span class="muted">${names.length} people · ${voted.length} places on the board</span></div>
+    ${!names.length ? `<div class="empty panel">Add the group in Settings → People to start voting.</div>` : ""}
+    ${todo.length ? `<div class="panel"><h3>Your turn (${todo.length})</h3><p class="muted" style="margin-top:-4px">Places the group is looking at that you haven't voted on.</p>${todo.map(row).join("")}</div>` : ""}
+    <div class="panel"><h3>Group ranking</h3>${voted.length ? voted.map(row).join("")
+      : `<p class="muted">Nothing yet. Tap 👍 / 👎 on a card, star a place or mark it shortlisted and it shows up here.</p>`}</div>
+  </div>`;
+  el.querySelector("[data-act=who]")?.addEventListener("change", (e) => { setMyName(e.target.value); renderVotes(el); });
+  el.onclick = async (e) => {
+    const act = e.target.dataset.act;
+    if (act !== "up" && act !== "down") return;
+    const l = all.find((x) => x.id === Number(e.target.closest("[data-id]").dataset.id));
+    if (await vote(l, act === "up" ? 1 : -1)) renderVotes(el);
+  };
 }
 
 function setView(v, rerender = true) {
@@ -268,6 +334,14 @@ async function init() {
       await patchListing(l.id, { favourite: l.favourite });
       e.target.classList.toggle("on", l.favourite);
       card.classList.toggle("fav", l.favourite);
+    } else if (act === "up" || act === "down") {
+      if (!myName()) { setView("votes"); toast("Pick your name to vote"); return; }
+      if (!(await vote(l, act === "up" ? 1 : -1))) return;
+      const mine = l.votes[myName()] || 0;
+      card.querySelector("[data-act=up]").classList.toggle("on", mine > 0);
+      card.querySelector("[data-act=down]").classList.toggle("on", mine < 0);
+      const chip = card.querySelector(".facts .vote-chip");
+      chip ? (chip.outerHTML = voteChip(l) || "<span></span>") : card.querySelector(".facts").insertAdjacentHTML("beforeend", voteChip(l));
     }
   });
   document.getElementById("results").addEventListener("change", async (e) => {

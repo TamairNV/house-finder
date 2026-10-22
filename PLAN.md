@@ -321,6 +321,15 @@ docker compose logs -f                        # first scrape starts ~2 min after
 - Real commute times: HF_ORS_API_KEY set on server (2026-10-22). Re-score prewarms the route cache with one ORS matrix
   call per place per 200 houses (`geo.prewarm_routes`); a 429 pauses ORS for 5 min and falls back to estimates.
 
+## 12e. Map + group voting (2026-10-22)
+
+- Map view: price pills coloured by score (★ = favourite, 👍n = up-votes), people's places as labels with 10/20/30-min
+  straight-line walking rings (toggle saved in localStorage), popups with commutes and vote faces.
+- Voting: 👍/👎 on every card for "me". "Me" = the profile person whose email matches the Cloudflare login email
+  (`window.ME`, set in `_page`), else picked once per device (localStorage `hf.me`). Fill people's emails in Settings
+  so votes attribute automatically. "Votes" view: group ranking by net votes (voted/starred/active-status places,
+  any filter) + "Your turn" list.
+
 ## 13. Session log
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with

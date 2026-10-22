@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import photos, scheduler
-from .api import _can_edit_access, router as api_router
+from .api import _can_edit_access, _viewer, router as api_router
 from .config import get_settings
 from .db import init_db, session_scope
 from .models import Listing
@@ -78,7 +78,10 @@ def healthz():
 def _page(request: Request, name: str, **ctx):
     with session_scope() as s:
         profile = load_profile(s)
-    return templates.TemplateResponse(request, name, {"profile": profile, "is_admin": _can_edit_access(request), **ctx})
+    viewer = _viewer(request)
+    me = next((p.name for p in profile.people if viewer and (p.email or "").strip().lower() == viewer), None)
+    return templates.TemplateResponse(request, name, {"profile": profile, "is_admin": _can_edit_access(request),
+                                                      "me": me, **ctx})
 
 
 @app.get("/", response_class=HTMLResponse)
