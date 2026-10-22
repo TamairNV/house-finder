@@ -262,20 +262,22 @@ docker compose logs -f                        # first scrape starts ~2 min after
 - Emails contain listing links + thumbnails only to the configured recipients.
 - Don't store anything about other people beyond the public listing and agent contact details.
 
-## 12. Open questions for Tamair
+## 12. Tamair's answers (2026-10-22) — applied to profile defaults + config.example.yaml
 
-1. City/area: Newcastle (Newcastle Uni) right? Any areas you'd never live in / love?
-2. How many people (hard limit), and is a spare bedroom ok if cheap?
-3. Everyone's key places + how they get there (walk/cycle/Metro), and max commute.
-4. Budget per person per week incl. bills, and how much buffer.
-5. Bathrooms: is 1 per 2 people, or 1 per 3, the minimum?
-6. Move-in window: earliest/latest dates (1 July exactly? late June ok? would Sept work?). 12-month contract fine?
-7. Furnished required? Any must-haves (garden, parking, big living room, double beds, washing machine)?
-8. Who gets emails, how often (daily at 6pm? weekly?), and instant alerts for great places?
-9. Email sending: OK to use a Gmail app password? Which address sends?
-10. Access: Tailscale only, or a public URL (via cloudflared/NPM with a password) for housemates?
-11. Any sites you already use or agents you like? OK to leave Zoopla off?
-12. Any non-students in the group (council tax!)?
+1. Newcastle only. Tamair (Comp Sci) → Urban Sciences Building NE4 5TG; some of the group → Medical School NE2 4HH.
+   Heaton is cheaper so it's a compromise. Heaton, Jesmond and City Centre are all in the mix.
+2. Group of 5 (subject to change).
+3. No hard commute caps, just not far away (max_distance_km 5).
+4. Budget ~£130 pppw incl bills (subject to change). Buffer set to £10.
+5. 0.5 bathrooms per person (share with one other) → 5 people need 3 bathrooms. Flag if this filters out too much.
+6. July best, June ok → target 2027-07-01, window 2027-06-01 to 2027-08-01.
+7. Must be furnished.
+8. Only Tamair gets emails for now: daily digest when there's something new (empty digests are skipped). Instant alerts off.
+9. Sender: Tamair's own address or a new one on their domains. Recommendation: a dedicated sender like
+   house@tamairnv.co.uk via their mail provider's SMTP (or Gmail + app password to start).
+10. Public URL via Cloudflare tunnel at https://house.tamairnv.co.uk (set HF_BASE_URL, keep basic auth on).
+11. Used Rightmove last year; no site preference. Zoopla stays off.
+12. All students (council tax £0).
 
 ## 13. Session log
 

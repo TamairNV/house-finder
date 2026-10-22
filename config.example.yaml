@@ -1,42 +1,46 @@
 # Copied into the database on FIRST start only. After that, edit everything in the web UI
 # (Settings page). Copy to config.yaml before `docker compose up`.
 name: "House hunt 2027/28"
-group_size: 4                 # hard limit: houses must have exactly this many bedrooms...
+group_size: 5                 # hard limit: houses must have exactly this many bedrooms...
 extra_bedrooms_allowed: 0     # ...plus this many spare rooms
-min_bathrooms_per_person: 0.34   # 0.34 ≈ 1 bathroom per 3 people; 0.5 = 1 per 2
+min_bathrooms_per_person: 0.5    # 0.5 = share a bathroom with at most one other (5 people -> 3 bathrooms)
 unknown_bathrooms_ok: true
 
-budget_pppw: 150              # £ per person per week INCLUDING bills
-budget_buffer_pppw: 15        # still shown up to £165, but scored lower
+budget_pppw: 130              # £ per person per week INCLUDING bills
+budget_buffer_pppw: 10        # still shown up to £140, but scored lower
 
-target_move_in: 2027-07-01
-earliest_move_in: 2027-06-01
-latest_move_in: 2027-09-15
+target_move_in: 2027-07-01    # July is best...
+earliest_move_in: 2027-06-01  # ...June is fine
+latest_move_in: 2027-08-01
 unknown_move_in_ok: true
 
-preferred_areas: [Jesmond, Heaton, Sandyford, Spital Tongues, Shieldfield, Ouseburn, Gosforth, Fenham]
-max_distance_km: 8
+furnished: furnished
+preferred_areas: [Heaton, Jesmond, City Centre, Sandyford, Shieldfield, Spital Tongues]
+max_distance_km: 5
 
 people:
   - name: Tamair
-    email: null
     places:
-      - label: Newcastle University
-        postcode: NE1 7RU
-        lat: 54.9803
-        lng: -1.6157
+      - label: Urban Sciences Building
+        postcode: NE4 5TG
+        lat: 54.9733
+        lng: -1.6251
         mode: walk          # walk | cycle | transit | drive
         max_minutes: 25
         hard_limit: false
-  # - name: Friend 2
-  #   places:
-  #     - {label: Northumbria City Campus, postcode: NE1 8ST, mode: walk, max_minutes: 25}
-  #     - {label: Work, postcode: NE1 4XF, mode: transit, max_minutes: 35, days_per_week: 2}
+  - name: Medic           # rename to whoever is at the med school
+    places:
+      - label: Medical School
+        postcode: NE2 4HH
+        lat: 54.9800
+        lng: -1.6210
+        mode: walk
+        max_minutes: 25
 
 recipients:
   - name: Tamair
-    email: you@example.com
-    digest_frequency: daily     # off | daily | twice_daily | weekly
+    email: you@example.com      # set your real address in config.yaml (not committed)
+    digest_frequency: daily     # off | daily | twice_daily | weekly; skipped when nothing new
     digest_hour: 18
-    instant_great: true         # email straight away when a great place appears
+    instant_great: false        # true = also email straight away when a great place appears
     include_reminders: true

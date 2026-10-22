@@ -95,31 +95,34 @@ class Profile(BaseModel):
     locations: list[SourceLocation] = Field(default_factory=lambda: [SourceLocation()])
     people: list[Person] = Field(default_factory=lambda: [
         Person(name="Tamair", places=[
-            Place(label="Newcastle University", postcode="NE1 7RU", lat=54.9800, lng=-1.6150,
+            Place(label="Urban Sciences Building", postcode="NE4 5TG", lat=54.9733, lng=-1.6251,
+                  mode="walk", max_minutes=25)]),
+        Person(name="Medic", places=[
+            Place(label="Medical School", postcode="NE2 4HH", lat=54.9800, lng=-1.6210,
                   mode="walk", max_minutes=25)]),
     ])
-    group_size: int = 4  # hard limit: listing must fit exactly this many people
+    group_size: int = 5  # hard limit: listing must fit exactly this many people
     extra_bedrooms_allowed: int = 0  # 1 = also accept houses with one spare room
-    min_bathrooms_per_person: float = 0.34  # 0.34 ≈ 1 bathroom per 3 people
+    min_bathrooms_per_person: float = 0.5  # 0.5 = share a bathroom with at most one other person
     unknown_bathrooms_ok: bool = True
 
     # Budget, per person per week, *including* bills (estimated if not included)
-    budget_pppw: float = 150.0
-    budget_buffer_pppw: float = 15.0  # listings up to budget+buffer are kept but penalised
+    budget_pppw: float = 130.0
+    budget_buffer_pppw: float = 10.0  # listings up to budget+buffer are kept but penalised
 
     # Move-in window
     target_move_in: date = date(2027, 7, 1)
     earliest_move_in: date = date(2027, 6, 1)
-    latest_move_in: date = date(2027, 9, 15)
+    latest_move_in: date = date(2027, 8, 1)  # July is best, June is fine
     unknown_move_in_ok: bool = True  # keep listings with no date (flagged)
 
-    furnished: Literal["any", "furnished", "unfurnished"] = "any"
+    furnished: Literal["any", "furnished", "unfurnished"] = "furnished"
     require_student_friendly: bool = True  # drop 'professionals only' listings
     exclude_keywords: list[str] = Field(default_factory=lambda: ["room only", "single room", "studio", "en-suite room in", "female only", "male only"])
     preferred_areas: list[str] = Field(default_factory=lambda: [
-        "Jesmond", "Heaton", "Sandyford", "Spital Tongues", "Shieldfield", "Ouseburn", "Gosforth", "Fenham"])
+        "Heaton", "Jesmond", "City Centre", "Sandyford", "Shieldfield", "Spital Tongues"])
     excluded_areas: list[str] = Field(default_factory=list)
-    max_distance_km: float = 8.0  # from the first person's first place; drops far-flung NE results
+    max_distance_km: float = 5.0  # from the first person's first place; drops far-flung NE results
 
     sources: dict[str, SourceConfig] = Field(default_factory=lambda: {
         "rightmove": SourceConfig(max_pages=10),
