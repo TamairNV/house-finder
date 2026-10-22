@@ -169,7 +169,7 @@ function cardHtml(l) {
       ${groupNames().length ? voteButtons(l) : ""}
       <select data-act="status">${["new", "shortlisted", "contacted", "viewing", "applied", "rejected", "hidden"].map((s) => `<option ${s === l.user_status ? "selected" : ""}>${s}</option>`).join("")}</select>
       <div class="spacer"></div>
-      <a href="${esc(l.url)}" target="_blank" rel="noopener" class="btn site-btn" title="Open on ${esc(SOURCE_LABEL[l.source] || l.source)}">Open<span class="wide-only"> on site</span> ↗</a>
+      <a href="${esc(l.url)}" target="_blank" rel="noopener" class="btn site-btn" title="Open on ${esc(SOURCE_LABEL[l.source] || l.source)}">Open<span class="wide-only">&nbsp;on site</span>&nbsp;↗</a>
     </div>
   </article>`;
 }

@@ -404,3 +404,15 @@ body.dirty .save-bar { display: flex; }
 .card .actions .site-btn { flex: none; margin-left: auto; }
 @media (max-width: 900px) { .wide-only { display: none; } .card .actions select { flex: 1 1 80px; } }
 .commute-table td { vertical-align: top; }
+
+/* No sideways rubber-banding on mobile: only real carousels (tables, chip strips, thumbnails, map, photos) pan sideways.
+   touch-action is checked up to the nearest scroll container, so those keep working. */
+body { touch-action: pan-y pinch-zoom; }
+.filters, .filters.open { touch-action: pan-y pinch-zoom; overflow-x: hidden; overscroll-behavior: contain; }
+.table-wrap, .section-nav, .thumbs { overscroll-behavior-x: contain; touch-action: pan-x pan-y pinch-zoom; }
+/* Card footer: one tidy row, the status picker takes whatever space is left */
+.card .actions { flex-wrap: nowrap; gap: 6px; align-items: center; }
+.card .actions .icon-btn { flex: none; }
+.card .actions select { flex: 1 1 0; min-width: 0; width: 0; }
+.card .actions .site-btn { flex: none; margin-left: 0; }
+.card .actions .spacer { display: none; }
