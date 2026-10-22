@@ -278,7 +278,7 @@ docker compose logs -f                        # first scrape starts ~2 min after
 2. Group of 5 (subject to change).
 3. No hard commute caps, just not far away (max_distance_km 5).
 4. Budget ~£130 pppw incl bills (subject to change). Buffer set to £10.
-5. 0.5 bathrooms per person (share with one other) → 5 people need 3 bathrooms. Flag if this filters out too much.
+5. 0.4 bathrooms per person → 2 bathrooms for 5 is fine (Tamair, 2026-10-22; 0.5 meant 3 bathrooms and left only 3 listings passing).
 6. July best, June ok → target 2027-07-01, window 2027-06-01 to 2027-08-01.
 7. Must be furnished.
 8. Only Tamair gets emails for now: daily digest when there's something new (empty digests are skipped). Instant alerts off.
@@ -298,4 +298,4 @@ docker compose logs -f                        # first scrape starts ~2 min after
   rents, "Available now"; AFS £0.00 bills quote / 0 deposit; UniHomes detail photos (175 → 16); per-room price sanity
   rule; `/api/status` runs were never saved (expunge before commit). 88 tests. Deployed via docker compose on :8095.
   First scrape: rightmove 127, unihomes 108, afs 60, sturents 12, spareroom 7, openrent 4 (no errors). Only 3 pass the
-  filters; 22 more fail only because 2 bathrooms < 0.5 per person for 5 (ask Tamair whether 2 baths for 5 is OK).
+  filters; 22 more failed only on 2 bathrooms < 0.5 per person; Tamair said 2 for 5 is fine → 0.4, 20 pass.

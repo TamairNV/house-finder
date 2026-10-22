@@ -103,7 +103,7 @@ class Profile(BaseModel):
     ])
     group_size: int = 5  # hard limit: listing must fit exactly this many people
     extra_bedrooms_allowed: int = 0  # 1 = also accept houses with one spare room
-    min_bathrooms_per_person: float = 0.5  # 0.5 = share a bathroom with at most one other person
+    min_bathrooms_per_person: float = 0.4  # 0.4 = 2 bathrooms for 5
     unknown_bathrooms_ok: bool = True
 
     # Budget, per person per week, *including* bills (estimated if not included)

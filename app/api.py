@@ -225,6 +225,7 @@ def put_profile(body: dict, s: Session = Depends(get_session)):
         raise HTTPException(422, e.errors(include_url=False, include_context=False))
     old = load_profile(s)
     save_profile(s, p)
+    s.commit()  # the dependency only commits after the response is sent; a quick re-GET would see the old profile
     if p.scrape_interval_hours != old.scrape_interval_hours:
         scheduler.reschedule(p.scrape_interval_hours)
     n = rescore_all(s, p)

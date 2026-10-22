@@ -3,7 +3,7 @@
 name: "House hunt 2027/28"
 group_size: 5                 # hard limit: houses must have exactly this many bedrooms...
 extra_bedrooms_allowed: 0     # ...plus this many spare rooms
-min_bathrooms_per_person: 0.5    # 0.5 = share a bathroom with at most one other (5 people -> 3 bathrooms)
+min_bathrooms_per_person: 0.4    # 0.4 = 2 bathrooms for 5 people
 unknown_bathrooms_ok: true
 
 budget_pppw: 130              # £ per person per week INCLUDING bills
