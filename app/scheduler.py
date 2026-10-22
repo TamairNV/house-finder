@@ -3,14 +3,16 @@ from __future__ import annotations
 
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy import func, select
 
 from .config import get_settings
 from .db import session_scope
 from .emailer import run_due_digests, send_instant_alerts
+from .models import ScrapeRun
 from .pipeline import run_all
 from .store import load_profile
 
@@ -59,6 +61,17 @@ def trigger_scrape_now() -> bool:
     return True
 
 
+def first_scrape_time(hours: float, tz: ZoneInfo) -> datetime:
+    """Resume the interval from the last finished run so restarts don't trigger an extra scrape."""
+    soon = datetime.now(tz) + timedelta(minutes=2)
+    with session_scope() as s:
+        last = s.scalar(select(func.max(ScrapeRun.finished_at)))
+    if last is None:
+        return soon
+    due = last.replace(tzinfo=timezone.utc).astimezone(tz) + timedelta(hours=hours)
+    return max(soon, due)
+
+
 def start() -> BackgroundScheduler | None:
     global _scheduler
     if not get_settings().scheduler_enabled or _scheduler is not None:
@@ -68,7 +81,7 @@ def start() -> BackgroundScheduler | None:
     tz = ZoneInfo(get_settings().timezone)
     _scheduler = BackgroundScheduler(timezone=tz)
     _scheduler.add_job(scrape_job, "interval", hours=hours, id="scrape", jitter=600,
-                       next_run_time=datetime.now(tz) + timedelta(minutes=2), max_instances=1, coalesce=True)
+                       next_run_time=first_scrape_time(hours, tz), max_instances=1, coalesce=True)
     _scheduler.add_job(email_job, "interval", minutes=10, id="email", max_instances=1, coalesce=True)
     _scheduler.start()
     log.info("Scheduler started: scrape every %.1fh, email check every 10 min", hours)

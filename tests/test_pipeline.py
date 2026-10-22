@@ -163,3 +163,18 @@ def test_run_source_persists_run_counts(session, monkeypatch):
     session.expire_all()
     run = session.scalars(select(ScrapeRun)).one()
     assert run.ok and run.finished_at is not None and run.found == 1 and run.new == 1 and run.pages == 3
+
+
+def test_first_scrape_time_resumes_interval(session):
+    from datetime import datetime, timezone as tzmod
+    from zoneinfo import ZoneInfo
+
+    from app.models import ScrapeRun
+    from app.scheduler import first_scrape_time
+
+    tz = ZoneInfo("Europe/London")
+    now = datetime.now(tz)
+    assert first_scrape_time(4, tz) - now < timedelta(minutes=3)  # no runs yet: soon
+    session.add(ScrapeRun(source="rightmove", finished_at=datetime.now(tzmod.utc).replace(tzinfo=None) - timedelta(hours=1)))
+    session.commit()
+    assert timedelta(hours=2, minutes=55) < first_scrape_time(4, tz) - now < timedelta(hours=3, minutes=5)
