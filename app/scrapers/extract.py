@@ -102,7 +102,7 @@ def js_assignment(html: str, name: str) -> Any | None:
 def js_arrays(html: str) -> dict[str, list]:
     """All ``var UPPERCASE = [...]`` arrays (OpenRent style)."""
     out: dict[str, list] = {}
-    for m in re.finditer(r"(?:var|let|const)\s+([A-Z][A-Z0-9_]+)\s*=\s*\[", html):
+    for m in re.finditer(r"(?:var|let|const)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\[", html):
         val = js_assignment(html[m.start():], m.group(1))
         if isinstance(val, list):
             out[m.group(1)] = val

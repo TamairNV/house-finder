@@ -85,7 +85,7 @@ class OpenRentScraper(CardScraper):
             title = titles.get(lid)
             if title:
                 r.title = title[:150]
-                r.address = ", ".join(title.split(",")[1:]).strip() or None
+                r.address = ", ".join(x.strip() for x in title.split(",")[1:]) or None
             r.card_text = clean(f"{title or ''} £{price} pcm")
             out.append(r)
         return out
@@ -96,7 +96,7 @@ class OpenRentScraper(CardScraper):
         h1 = soup.find("h1")
         if h1:
             r.title = text_of(h1)
-            r.address = ", ".join(r.title.split(",")[1:]).strip() or r.address
+            r.address = ", ".join(x.strip() for x in r.title.split(",")[1:]) or r.address
         desc = soup.find(id="descriptionText")
         if desc:
             r.description = text_of(desc)
