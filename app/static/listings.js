@@ -112,6 +112,12 @@ document.addEventListener("touchstart", (e) => {
   const g = e.target.closest(".card .gallery");
   touch = g ? { g, x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
 }, { passive: true });
+document.addEventListener("touchmove", (e) => {
+  if (!touch || e.touches.length > 1) return;
+  const mx = Math.abs(e.touches[0].clientX - touch.x), my = Math.abs(e.touches[0].clientY - touch.y);
+  if (touch.horiz == null && (mx > 6 || my > 6)) touch.horiz = mx > my;
+  if (touch.horiz) e.preventDefault();  // keep the page still while flipping photos
+}, { passive: false });
 document.addEventListener("touchend", (e) => {
   if (!touch) return;
   const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;

@@ -192,6 +192,15 @@ function setupGallery(photos) {
     dragging = false;
     go(Math.abs(dx) > Math.min(80, w * 0.15) ? i - Math.sign(dx) : i);
   };
+  // Mobile browsers start scrolling/panning the page before pointer events win; claim horizontal swipes.
+  let tx = null, ty = 0, horiz = null;
+  gal.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; horiz = null; }, { passive: true });
+  gal.addEventListener("touchmove", (e) => {
+    if (tx == null || e.touches.length > 1) return;
+    const mx = Math.abs(e.touches[0].clientX - tx), my = Math.abs(e.touches[0].clientY - ty);
+    if (horiz == null && (mx > 6 || my > 6)) horiz = mx > my;
+    if (horiz) e.preventDefault();
+  }, { passive: false });
   gal.addEventListener("pointerup", end);
   gal.addEventListener("pointercancel", end);
   gal.addEventListener("dblclick", () => toggleFull());
