@@ -57,7 +57,9 @@ def _find_target() -> dict:
     account = st.cf_account_id
     if not account:
         accounts = _req("GET", "/accounts")["result"]
-        if len(accounts) != 1:
+        if not accounts:
+            raise AccessError("Set HF_CF_ACCOUNT_ID, or give the token Account Settings: Read so it can find the account.")
+        if len(accounts) > 1:
             raise AccessError("Set HF_CF_ACCOUNT_ID: the token can see more than one Cloudflare account.")
         account = accounts[0]["id"]
 
