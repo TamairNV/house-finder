@@ -93,42 +93,68 @@ function render() {
   else renderMap(el);
 }
 
-function stepPhoto(card, dir) {
+// Card photos slide: the current one leaves in the swipe direction, the next comes in from the other side.
+// `fromDx` is how far a finger already dragged it, so a swipe carries on from where it was let go.
+const SLIDE_MS = 230;
+function stepPhoto(card, dir, fromDx = 0) {
   const l = items.find((x) => x.id === Number(card.dataset.id));
   const g = card.querySelector(".gallery");
-  if (!l || (l.photos || []).length < 2) return;
-  const i = (Number(g.dataset.i) + dir + l.photos.length) % l.photos.length;
+  if (!l || (l.photos || []).length < 2 || g.dataset.busy) return;
+  const n = l.photos.length, i = (Number(g.dataset.i) + dir + n) % n;
   g.dataset.i = i;
-  const im = g.querySelector("img");
-  im.classList.add("swap");
+  g.dataset.busy = "1";
+  g.querySelector(".counter").textContent = `${i + 1}/${n}`;
+  const im = g.querySelector("img"), w = g.clientWidth;
   const next = new Image();
-  next.onload = next.onerror = () => { im.src = next.src; im.style.visibility = ""; im.classList.remove("swap"); };
+  const loaded = new Promise((res) => { next.onload = next.onerror = res; setTimeout(res, 600); });
   next.src = img(l.photos[i]);
-  g.querySelector(".counter").textContent = `${i + 1}/${l.photos.length}`;
+  im.style.transition = `transform ${SLIDE_MS * (1 - Math.min(Math.abs(fromDx) / w, 0.8))}ms ease-in`;
+  im.style.transform = `translateX(${-dir * w}px)`;
+  Promise.all([loaded, new Promise((res) => setTimeout(res, SLIDE_MS))]).then(() => {
+    im.style.transition = "none";
+    im.src = next.src;
+    im.style.visibility = "";
+    im.style.transform = `translateX(${dir * w}px)`;
+    void im.offsetWidth;  // apply the jump before animating back in
+    im.style.transition = `transform ${SLIDE_MS}ms cubic-bezier(.22,.61,.36,1)`;
+    im.style.transform = "translateX(0)";
+    setTimeout(() => { delete g.dataset.busy; [1, -1].forEach((d) => (new Image().src = img(l.photos[(i + d + n) % n]))); }, SLIDE_MS);
+  });
 }
 
-// Swipe left/right on a card photo to flip through its pictures.
+// Swipe left/right on a card photo: the photo follows the finger, then slides on (or springs back).
 let touch = null;
 document.addEventListener("touchstart", (e) => {
   const g = e.target.closest(".card .gallery");
-  touch = g ? { g, x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+  touch = g && !g.dataset.busy && g.querySelector("img") ? { g, im: g.querySelector("img"), x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0 } : null;
 }, { passive: true });
 document.addEventListener("touchmove", (e) => {
   if (!touch || e.touches.length > 1) return;
-  const mx = Math.abs(e.touches[0].clientX - touch.x), my = Math.abs(e.touches[0].clientY - touch.y);
-  if (touch.horiz == null && (mx > 6 || my > 6)) touch.horiz = mx > my;
-  if (touch.horiz) e.preventDefault();  // keep the page still while flipping photos
+  const dx = e.touches[0].clientX - touch.x, dy = e.touches[0].clientY - touch.y;
+  if (touch.horiz == null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) touch.horiz = Math.abs(dx) > Math.abs(dy);
+  if (!touch.horiz) return;
+  e.preventDefault();  // keep the page still while flipping photos
+  touch.dx = dx;
+  touch.im.style.transition = "none";
+  touch.im.style.transform = `translateX(${dx}px)`;
 }, { passive: false });
-document.addEventListener("touchend", (e) => {
+const endTouch = () => {
   if (!touch) return;
-  const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
-  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    stepPhoto(touch.g.closest(".card"), dx < 0 ? 1 : -1);
-    const a = touch.g.querySelector("a");
-    if (a) { const block = (ev) => { ev.preventDefault(); a.removeEventListener("click", block); }; a.addEventListener("click", block); setTimeout(() => a.removeEventListener("click", block), 400); }
-  }
+  const { g, im, dx, horiz } = touch;
   touch = null;
-}, { passive: true });
+  if (!horiz) return;
+  const card = g.closest(".card"), many = (items.find((x) => x.id === Number(card.dataset.id))?.photos || []).length > 1;
+  if (many && Math.abs(dx) > Math.min(60, g.clientWidth * 0.18)) {
+    stepPhoto(card, dx < 0 ? 1 : -1, dx);
+    const a = g.querySelector("a");
+    if (a) { const block = (ev) => { ev.preventDefault(); a.removeEventListener("click", block); }; a.addEventListener("click", block); setTimeout(() => a.removeEventListener("click", block), 400); }
+  } else {
+    im.style.transition = `transform ${SLIDE_MS}ms cubic-bezier(.22,.61,.36,1)`;
+    im.style.transform = "translateX(0)";
+  }
+};
+document.addEventListener("touchend", endTouch, { passive: true });
+document.addEventListener("touchcancel", endTouch, { passive: true });
 
 const isNew = (l) => l.first_seen && Date.now() - new Date(l.first_seen + "Z") < 48 * 3600 * 1000;
 
