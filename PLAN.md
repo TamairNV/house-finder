@@ -282,9 +282,13 @@ docker compose logs -f                        # first scrape starts ~2 min after
 6. July best, June ok → target 2027-07-01, window 2027-06-01 to 2027-08-01.
 7. Must be furnished.
 8. Only Tamair gets emails for now: daily digest when there's something new (empty digests are skipped). Instant alerts off.
-9. Sender: Tamair's own address or a new one on their domains. Recommendation: a dedicated sender like
-   house.isotopicstudios.co.uk via their mail provider's SMTP (or Gmail + app password to start).
-10. Public URL via Cloudflare tunnel at https://house.isotopicstudios.co.uk (set HF_BASE_URL, keep basic auth on).
+9. Sender: Tamair's own address or a new one on their domains. Recommendation: a dedicated sender on
+   tamairnv.co.uk via their mail provider's SMTP (or Gmail + app password to start).
+10. Public URL https://house.tamairnv.co.uk: dashboard-managed Cloudflare tunnel run as its own container
+    `house-finder-tunnel` (`--network host`, token in `~/house-finder-tunnel/tunnel.env`, mode 600; ingress
+    `http://localhost:8095` — must be http, the app has no TLS). Guarded by a Cloudflare Access app (verified: every
+    path 302s to isotopicstudios.cloudflareaccess.com), so HF_UI_USERNAME/PASSWORD are left empty. Other tunnels on the
+    box (systemd cloudflared + 4 containers) are separate; don't touch them.
 11. Used Rightmove last year; no site preference. Zoopla stays off.
 12. All students (council tax £0).
 
