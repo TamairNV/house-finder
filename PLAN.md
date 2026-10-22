@@ -279,5 +279,5 @@ docker compose logs -f                        # first scrape starts ~2 min after
 
 ## 13. Session log
 
-- 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 55 tests, UI checked with
+- 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with
   demo data. Couldn't create GitHub repo; asked Tamair to create `TamairNV/house-finder` + deploy key.
