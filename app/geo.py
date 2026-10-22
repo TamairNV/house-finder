@@ -10,7 +10,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .models import GeoCache
+from .models import GeoCache, RouteCache
 from .profile import Place
 
 log = logging.getLogger(__name__)
@@ -130,6 +130,18 @@ def ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], m
         return None
 
 
+def cached_route_minutes(session: Session, origin: tuple[float, float], dest: tuple[float, float], mode: str) -> float | None:
+    key = f"{mode}:{origin[0]:.4f},{origin[1]:.4f}>{dest[0]:.4f},{dest[1]:.4f}"
+    row = session.get(RouteCache, key)
+    if row is not None:
+        return row.minutes
+    res = ors_minutes(origin, [dest], mode)
+    if res is None:
+        return None  # API unavailable: don't cache, fall back to the estimate
+    session.merge(RouteCache(key=key, minutes=res[0]))
+    return res[0]
+
+
 def commutes_for(session: Session, lat: float, lng: float, people_places: list, use_api: bool = False) -> list[Commute]:
     out: list[Commute] = []
     for person, place in people_places:
@@ -139,9 +151,9 @@ def commutes_for(session: Session, lat: float, lng: float, people_places: list, 
         km = haversine_km(lat, lng, coords[0], coords[1])
         minutes, estimated = estimate_minutes(km, place.mode), True
         if use_api:
-            api = ors_minutes((lat, lng), [coords], place.mode)
-            if api and api[0] is not None:
-                minutes, estimated = api[0], False
+            api = cached_route_minutes(session, (lat, lng), coords, place.mode)
+            if api is not None:
+                minutes, estimated = api, False
         out.append(Commute(person.name, place.label, place.mode, round(km, 2), minutes,
                            place.max_minutes, place.hard_limit, estimated, place.weight * max(place.days_per_week, 1) / 5))
     return out

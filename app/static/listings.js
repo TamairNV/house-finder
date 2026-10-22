@@ -89,6 +89,7 @@ function cardHtml(l) {
         ${l.bills_included ? `<span class="chip good">Bills inc</span>` : ""}
         ${l.furnished ? `<span class="chip">${esc(l.furnished)}</span>` : ""}
         ${l.site_status !== "active" ? `<span class="chip bad">${esc(l.site_status.replace("_", " "))}</span>` : ""}
+        ${voteChip(l)}
       </div>
       <div class="commutes">${commuteChips(l)}</div>
       ${reasons}${warns}
@@ -101,6 +102,13 @@ function cardHtml(l) {
       <a href="${esc(l.url)}" target="_blank" rel="noopener" class="btn">Open on site ↗</a>
     </div>
   </article>`;
+}
+
+function voteChip(l) {
+  const vals = Object.values(l.votes || {});
+  if (!vals.length) return "";
+  const up = vals.filter((v) => v > 0).length, down = vals.filter((v) => v < 0).length;
+  return `<span class="chip ${down ? "warn" : "good"}" title="${esc(Object.entries(l.votes).map(([k, v]) => `${k} ${v > 0 ? "👍" : "👎"}`).join(", "))}">👍${up}${down ? ` 👎${down}` : ""}</span>`;
 }
 
 function tableHtml() {
@@ -164,6 +172,7 @@ async function init() {
     debounced();
   });
   document.getElementById("sort").addEventListener("change", refresh);
+  document.getElementById("filters-toggle").addEventListener("click", () => document.getElementById("filters").classList.toggle("open"));
   document.getElementById("view").addEventListener("click", (e) => { if (e.target.dataset.v) setView(e.target.dataset.v); });
   document.getElementById("reset").addEventListener("click", () => { saveState({ view }); location.reload(); });
 

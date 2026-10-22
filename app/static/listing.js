@@ -69,6 +69,7 @@ async function load() {
         <div>Last seen</div><div>${fmtDateTime(l.last_seen)}</div>
         <div>Also listed on</div><div>${(l.also_on || []).map((d) => `<a href="${esc(d.url)}" target="_blank">${SOURCE_LABEL[d.source] || d.source}</a>`).join(", ") || "-"}</div>
       </div></div>
+      <div class="panel section"><h3>Group votes</h3><div id="votes"></div></div>
       <div class="panel section"><h3>Notes</h3><textarea id="notes" placeholder="Viewing booked Tuesday, landlord seemed nice…">${esc(l.notes || "")}</textarea>
         <button id="save-notes" style="margin-top:6px">Save notes</button></div>
       <div class="panel section"><h3>History</h3>${(l.events || []).map((e) => `<div class="muted">${fmtDateTime(e.at)} · ${esc(e.kind.replace("_", " "))}</div>`).join("")}</div>
@@ -93,6 +94,24 @@ async function load() {
   };
   document.getElementById("status").onchange = async (e) => { await patchListing(id, { user_status: e.target.value }); toast("Saved"); };
   document.getElementById("save-notes").onclick = async () => { await patchListing(id, { notes: document.getElementById("notes").value }); toast("Notes saved"); };
+
+  const renderVotes = () => {
+    const people = (window.PROFILE.people || []).map((p) => p.name).filter(Boolean);
+    document.getElementById("votes").innerHTML = people.map((name) => {
+      const v = (l.votes || {})[name] || 0;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="flex:1">${esc(name)}</span>
+        <button class="icon-btn ${v === 1 ? "on" : ""}" data-person="${esc(name)}" data-v="1">👍</button>
+        <button class="icon-btn ${v === -1 ? "on" : ""}" data-person="${esc(name)}" data-v="-1">👎</button></div>`;
+    }).join("") || `<p class="muted">Add people in Settings to vote.</p>`;
+  };
+  renderVotes();
+  document.getElementById("votes").onclick = async (e) => {
+    const b = e.target.closest("[data-person]"); if (!b) return;
+    const cur = (l.votes || {})[b.dataset.person] || 0;
+    const value = cur === Number(b.dataset.v) ? 0 : Number(b.dataset.v);
+    const res = await patchListing(id, { vote: { person: b.dataset.person, value } });
+    l.votes = res.votes; renderVotes();
+  };
 
   if (l.lat != null) {
     const m = L.map("minimap").setView([l.lat, l.lng], 14);

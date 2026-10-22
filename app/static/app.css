@@ -123,3 +123,14 @@ pre.err { white-space: pre-wrap; font-size: 11px; max-width: 600px; }
 .form-row input:not([type=checkbox]), .form-row select { width: 100%; min-width: 0; }
 .form-row > * { min-width: 0; }
 .place-row input, .place-row select { min-width: 0; width: 100%; }
+.filters-toggle { display: none; }
+@media (max-width: 900px) {
+  header.top { gap: 12px; padding: 10px 14px; }
+  header.top .summary { display: none; }
+  main { padding: 12px 12px 60px; }
+  .filters { display: none; position: static; max-height: none; }
+  .filters.open { display: block; }
+  .filters-toggle { display: inline-block; }
+  .grid { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: 110px 1fr; }
+}

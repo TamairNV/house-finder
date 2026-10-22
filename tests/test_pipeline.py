@@ -123,3 +123,16 @@ def test_estimate_minutes_reasonable():
     km = geo.haversine_km(54.9883, -1.6023, *UNI)
     assert 10 < geo.estimate_minutes(km, "walk") < 20
     assert geo.estimate_minutes(0.3, "transit") == geo.estimate_minutes(0.3, "walk")
+
+
+def test_add_missing_columns(tmp_path):
+    from sqlalchemy import create_engine, inspect, text
+
+    from app import db
+    url = f"sqlite:///{tmp_path}/old.db"
+    eng = create_engine(url)
+    with eng.begin() as c:
+        c.execute(text("CREATE TABLE recipients (id INTEGER PRIMARY KEY, name VARCHAR(100), email VARCHAR(200))"))
+    db._add_missing_columns(eng)
+    cols = {c["name"] for c in inspect(eng).get_columns("recipients")}
+    assert {"digest_frequency", "instant_great", "min_score"} <= cols

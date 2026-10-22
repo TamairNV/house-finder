@@ -3,7 +3,7 @@ let P = null;
 const $ = (id) => document.getElementById(id);
 const SIMPLE = ["name", "group_size", "extra_bedrooms_allowed", "min_bathrooms_per_person", "unknown_bathrooms_ok",
   "budget_pppw", "budget_buffer_pppw", "target_move_in", "earliest_move_in", "latest_move_in", "unknown_move_in_ok",
-  "furnished", "require_student_friendly", "max_distance_km", "scrape_interval_hours"];
+  "furnished", "require_student_friendly", "max_distance_km", "scrape_interval_hours", "use_routing_api"];
 const LISTS = ["preferred_areas", "excluded_areas", "exclude_keywords"];
 const EMAIL = ["great_score_threshold", "reminder_every_days", "max_reminders"];
 const BILL_FIELDS = [

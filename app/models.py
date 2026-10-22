@@ -86,6 +86,7 @@ class Listing(Base):
     # User state
     user_status: Mapped[str] = mapped_column(String(16), default="new", index=True)
     favourite: Mapped[bool] = mapped_column(Boolean, default=False)
+    votes: Mapped[dict] = mapped_column(JSON, default=dict)  # {person name: 1 | -1}
     notes: Mapped[str | None] = mapped_column(Text)
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
     last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime)
@@ -158,4 +159,12 @@ class GeoCache(Base):
     key: Mapped[str] = mapped_column(String(120), primary_key=True)
     lat: Mapped[float | None] = mapped_column(Float)
     lng: Mapped[float | None] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class RouteCache(Base):
+    """Routing API results (minutes) keyed by mode + rounded endpoints."""
+    __tablename__ = "route_cache"
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    minutes: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

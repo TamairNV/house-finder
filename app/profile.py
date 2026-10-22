@@ -130,6 +130,7 @@ class Profile(BaseModel):
         "afs": SourceConfig(max_pages=8),
         "unihomes": SourceConfig(max_pages=10, fetch_details=False),  # search JSON has nearly everything
     })
+    use_routing_api: bool = False  # real walk/cycle/drive times via openrouteservice (needs HF_ORS_API_KEY)
     scrape_interval_hours: float = 4.0
     scrape_quiet_hours: tuple[int, int] = (1, 7)  # don't scrape between these hours
 

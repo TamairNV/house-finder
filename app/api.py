@@ -36,7 +36,7 @@ def listing_dict(l: Listing, full: bool = False) -> dict[str, Any]:
         "available_now": l.available_now, "photos": l.photos or [], "score": l.score,
         "passes_filters": l.passes_filters, "filter_reasons": l.filter_reasons or [], "warnings": l.warnings or [],
         "commutes": l.commutes or [], "worst_commute_min": l.worst_commute_min,
-        "user_status": l.user_status, "favourite": l.favourite, "notes": l.notes,
+        "user_status": l.user_status, "favourite": l.favourite, "notes": l.notes, "votes": l.votes or {},
         "site_status": l.site_status, "first_seen": l.first_seen.isoformat() if l.first_seen else None,
         "duplicate_of_id": l.duplicate_of_id, "agent_name": l.agent_name,
     }
@@ -61,6 +61,7 @@ SORTS = {
     "commute": (Listing.worst_commute_min.is_(None), Listing.worst_commute_min),
     "available": (Listing.available_from.is_(None), Listing.available_from),
     "bathrooms": (desc(Listing.bathrooms),),
+    "favourites": (desc(Listing.favourite), desc(Listing.score)),
 }
 
 
@@ -157,10 +158,16 @@ def get_listing(listing_id: int, s: Session = Depends(get_session)):
     return d
 
 
+class Vote(BaseModel):
+    person: str
+    value: Literal[-1, 0, 1]
+
+
 class ListingPatch(BaseModel):
     user_status: Literal[tuple(USER_STATUSES)] | None = None  # type: ignore[valid-type]
     favourite: bool | None = None
     notes: str | None = None
+    vote: Vote | None = None
 
 
 @router.patch("/listings/{listing_id}")
@@ -172,6 +179,14 @@ def patch_listing(listing_id: int, patch: ListingPatch, s: Session = Depends(get
     for t in targets:
         for k, v in patch.model_dump(exclude_none=True).items():
             if k == "notes" and t is not l:
+                continue
+            if k == "vote":
+                votes = dict(t.votes or {})
+                if v["value"] == 0:
+                    votes.pop(v["person"], None)
+                else:
+                    votes[v["person"]] = v["value"]
+                t.votes = votes
                 continue
             setattr(t, k, v)
     return listing_dict(l)

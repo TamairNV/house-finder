@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from . import geo
 from .bills import estimate_bills
+from .config import get_settings
 from .db import session_scope
 from .models import Event, Listing, ScrapeRun, utcnow
 from .profile import Profile
@@ -177,7 +178,9 @@ def enrich_and_score(session: Session, listing: Listing, profile: Profile, use_r
     # Commutes
     commutes = []
     if listing.lat is not None:
-        commutes = geo.commutes_for(session, listing.lat, listing.lng, profile.all_places(), use_api=use_routing_api)
+        use_api = (use_routing_api or profile.use_routing_api) and bool(get_settings().ors_api_key) \
+            and listing.geo_precision in ("exact", "postcode") and listing.bedrooms in profile.allowed_bedrooms
+        commutes = geo.commutes_for(session, listing.lat, listing.lng, profile.all_places(), use_api=use_api)
     listing.commutes = [c.to_dict() for c in commutes]
     listing.worst_commute_min = max((c.minutes for c in commutes), default=None)
 

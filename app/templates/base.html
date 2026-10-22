@@ -18,7 +18,7 @@
     <a href="/status" class="{{ 'active' if page == 'status' }}">Status</a>
   </nav>
   <div class="spacer"></div>
-  <span class="muted">{{ profile.name }} · {{ profile.group_size }} people · move in {{ profile.target_move_in.strftime('%d %b %Y') }}</span>
+  <span class="muted summary">{{ profile.name }} · {{ profile.group_size }} people · move in {{ profile.target_move_in.strftime('%d %b %Y') }}</span>
 </header>
 <main>
 {% block content %}{% endblock %}
