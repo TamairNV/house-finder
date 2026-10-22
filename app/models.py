@@ -88,6 +88,9 @@ class Listing(Base):
     favourite: Mapped[bool] = mapped_column(Boolean, default=False)
     votes: Mapped[dict] = mapped_column(JSON, default=dict)  # {person name: 1 | -1}
     notes: Mapped[str | None] = mapped_column(Text)
+    ai_overview: Mapped[str | None] = mapped_column(Text)  # markdown from the Claude API
+    ai_overview_at: Mapped[datetime | None] = mapped_column(DateTime)
+    ai_chat: Mapped[list] = mapped_column(JSON, default=list)  # [{q, a, at}]
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
     last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime)
 

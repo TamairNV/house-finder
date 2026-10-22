@@ -33,6 +33,17 @@ class Settings(BaseSettings):
     ors_api_key: str | None = None  # openrouteservice.org, free tier
     google_maps_api_key: str | None = None  # Routes API, for public transport times
 
+    # AI overview / Q&A on listings.
+    #   auto: Claude API if a key is set, else the Claude Code CLI if it's installed (uses your Claude
+    #   subscription), else off (AI buttons hidden).
+    ai_provider: str = "auto"  # auto | api | claude_cli | off
+    anthropic_api_key: str | None = None  # falls back to ANTHROPIC_API_KEY
+    ai_model: str = "claude-opus-5-5"  # API only
+    ai_effort: str = "medium"  # API only: low | medium | high
+    claude_cmd: str = "claude"  # Claude Code CLI binary
+    claude_model: str | None = None  # CLI only, e.g. "opus" or "sonnet"; default = your Claude Code default
+    claude_timeout: int = 240
+
     # Scraping
     scheduler_enabled: bool = True
     user_agent: str = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 "
@@ -45,6 +56,11 @@ class Settings(BaseSettings):
     @property
     def db_url(self) -> str:
         return self.database_url or f"sqlite:///{(self.data_dir / 'house_finder.db').as_posix()}"
+
+    @property
+    def ai_key(self) -> str | None:
+        import os
+        return self.anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
 
     @property
     def smtp_configured(self) -> bool:

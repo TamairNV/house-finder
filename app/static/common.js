@@ -59,3 +59,56 @@ function availChip(l) {
 async function patchListing(id, body) {
   return api(`/api/listings/${id}`, { method: "PATCH", body });
 }
+
+// "5m ago" style relative time for ISO timestamps (naive ones are UTC from the API).
+function ago(iso) {
+  if (!iso) return "never";
+  const t = new Date(iso + (iso.endsWith("Z") || iso.includes("+") ? "" : "Z"));
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
+
+// Tiny Markdown renderer for AI answers: headings, bullet/numbered lists, bold, inline code, paragraphs.
+// Input is escaped first, so model output can't inject HTML.
+function md(src) {
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/(^|\W)\*([^*\s][^*]*?)\*(?=\W|$)/g, "$1<i>$2</i>");
+  const out = [];
+  let list = null, para = [];
+  const flushPara = () => { if (para.length) { out.push(`<p>${para.map(inline).join("<br>")}</p>`); para = []; } };
+  const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
+  for (const raw of String(src || "").split("\n")) {
+    const line = raw.trimEnd();
+    let m;
+    if (!line.trim()) { flushPara(); flushList(); continue; }
+    if ((m = line.match(/^#{1,4}\s+(.*)/))) { flushPara(); flushList(); out.push(`<h4>${inline(m[1])}</h4>`); continue; }
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/)) || (m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
+      const tag = /^\s*\d/.test(line) ? "ol" : "ul";
+      flushPara();
+      if (!list || list.tag !== tag) { flushList(); list = { tag, items: [] }; }
+      list.items.push(m[1]);
+      continue;
+    }
+    flushList();
+    para.push(line);
+  }
+  flushPara(); flushList();
+  return out.join("");
+}
+
+// Header "last updated" indicator, refreshed every minute.
+async function refreshUpdated() {
+  const el = document.getElementById("updated");
+  if (!el) return;
+  try {
+    const u = await api("/api/updated");
+    const next = u.next_scrape ? new Date(u.next_scrape).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : null;
+    el.innerHTML = (u.scraping ? `<span class="pulse"></span>Checking sites now…` : `Updated ${ago(u.last_scrape)}`)
+      + (u.new_24h ? ` · <a href="/?sort=newest">${u.new_24h} new today</a>` : "");
+    el.title = (u.last_scrape ? `Last scrape finished ${fmtDateTime(u.last_scrape)}` : "No scrape yet") + (next ? ` · next check ${next}` : "");
+  } catch (_) { /* header indicator is best-effort */ }
+}
+document.addEventListener("DOMContentLoaded", () => { refreshUpdated(); setInterval(refreshUpdated, 60000); });

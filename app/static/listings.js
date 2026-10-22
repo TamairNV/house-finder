@@ -64,6 +64,8 @@ function render() {
   else renderMap(el);
 }
 
+const isNew = (l) => l.first_seen && Date.now() - new Date(l.first_seen + "Z") < 48 * 3600 * 1000;
+
 function cardHtml(l) {
   const photos = l.photos || [];
   const also = (l.also_on || []).map((d) => `<a class="chip accent" href="${esc(d.url)}" target="_blank" rel="noopener">${SOURCE_LABEL[d.source] || d.source}</a>`).join("");
@@ -77,6 +79,7 @@ function cardHtml(l) {
         <span class="counter">1/${photos.length}</span>` : `<a href="/listing/${l.id}" class="noimg">No photos</a>`}
       <span class="${scoreClass(l.score)}">${Math.round(l.score || 0)}</span>
       <span class="src-badge">${SOURCE_LABEL[l.source] || l.source}</span>
+      ${isNew(l) ? `<span class="new-badge">NEW</span>` : ""}
     </div>
     <div class="body">
       <a class="title" href="/listing/${l.id}">${esc(l.title || l.address || "Listing")}</a>
@@ -164,6 +167,8 @@ async function init() {
   mk("f-source", meta.sources.map((s) => ({ value: s.name, label: `${s.label} (${s.count})` })));
   mk("f-area", meta.areas.map((a) => ({ value: a.name, label: `${a.name} (${a.count})` })));
   applyState(loadState());
+  const urlSort = new URLSearchParams(location.search).get("sort");
+  if (urlSort && document.querySelector(`#sort option[value="${CSS.escape(urlSort)}"]`)) document.getElementById("sort").value = urlSort;
 
   let timer;
   const debounced = () => { clearTimeout(timer); timer = setTimeout(refresh, 250); };
@@ -190,7 +195,11 @@ async function init() {
       let i = Number(g.dataset.i) + (act === "next" ? 1 : -1);
       i = (i + l.photos.length) % l.photos.length;
       g.dataset.i = i;
-      g.querySelector("img").src = img(l.photos[i]);
+      const im = g.querySelector("img");
+      im.classList.add("swap");
+      const next = new Image();
+      next.onload = next.onerror = () => { im.src = next.src; im.style.visibility = ""; im.classList.remove("swap"); };
+      next.src = img(l.photos[i]);
       g.querySelector(".counter").textContent = `${i + 1}/${l.photos.length}`;
     } else if (act === "fav") {
       l.favourite = !l.favourite;

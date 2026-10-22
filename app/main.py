@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import base64
-import hashlib
 import logging
 import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import httpx
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import scheduler
+from . import photos, scheduler
 from .api import router as api_router
 from .config import get_settings
 from .db import init_db, session_scope
@@ -95,36 +93,12 @@ def status_page(request: Request):
 
 # ---------------------------------------------------------------- photo cache
 
-ALLOWED_IMG_HOSTS = ("rightmove.co.uk", "zoocdn.com", "zoopla.co.uk", "openrent.co.uk", "spareroom.co.uk",
-                     "sturents.com", "accommodationforstudents.com", "unihomes.co.uk", "cloudfront.net",
-                     "amazonaws.com", "imgix.net", "picsum.photos")
-
-
 @app.get("/img")
 def image_proxy(u: str):
     """Fetch-and-cache listing photos so they survive the listing being taken down
     (and so hotlink protection doesn't break the UI)."""
-    host = httpx.URL(u).host if u.startswith("http") else ""
-    if not any(host.endswith(h) for h in ALLOWED_IMG_HOSTS):
-        raise HTTPException(400, "host not allowed")
-    s = get_settings()
-    cache_dir = s.data_dir / "photos"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    key = hashlib.sha1(u.encode()).hexdigest()
-    path = cache_dir / key[:2] / key
-    if path.exists():
-        return FileResponse(path, media_type=(path.with_suffix(".type").read_text() if path.with_suffix(".type").exists() else "image/jpeg"),
-                            headers={"Cache-Control": "public, max-age=31536000, immutable"})
     try:
-        r = httpx.get(u, headers={"User-Agent": s.user_agent, "Referer": f"https://{host}/"}, timeout=20, follow_redirects=True)
-        r.raise_for_status()
-    except httpx.HTTPError:
-        raise HTTPException(502, "upstream image fetch failed")
-    ctype = r.headers.get("content-type", "image/jpeg").split(";")[0]
-    if not ctype.startswith("image/"):
-        raise HTTPException(502, "not an image")
-    if s.cache_photos:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(r.content)
-        path.with_suffix(".type").write_text(ctype)
-    return Response(r.content, media_type=ctype, headers={"Cache-Control": "public, max-age=31536000, immutable"})
+        data, ctype = photos.fetch(u)
+    except photos.PhotoError as e:
+        raise HTTPException(e.status, str(e))
+    return Response(data, media_type=ctype, headers={"Cache-Control": "public, max-age=31536000, immutable"})

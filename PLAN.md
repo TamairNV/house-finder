@@ -292,6 +292,17 @@ docker compose logs -f                        # first scrape starts ~2 min after
 11. Used Rightmove last year; no site preference. Zoopla stays off.
 12. All students (council tax £0).
 
+## 12b. AI overview + Q&A (2026-10-22)
+
+- `app/ai.py`: per-listing overview (Markdown, saved to `Listing.ai_overview`) and Q&A (`Listing.ai_chat`), shown
+  on the listing page. Endpoints: `POST /api/listings/{id}/ai/overview`, `POST .../ai/ask`, `DELETE .../ai/chat`.
+- Backends (`HF_AI_PROVIDER`, default auto): `api` = Claude API with `HF_ANTHROPIC_API_KEY`; `claude_cli` = Claude
+  Code headless (`claude -p`, stream-json, `--tools ""`, photos inlined as base64) on Tamair's Claude subscription.
+  Tamair asked: use the subscription if possible; if it needs a paid key, keep the feature hidden (auto = hidden
+  when neither is available).
+- On TNV-server the CLI is mounted into the container via `docker-compose.claude.yml` (runs as uid 1000).
+- Only ever user-triggered (button / question), never automatic per scrape, to keep subscription usage sane.
+
 ## 13. Session log
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with

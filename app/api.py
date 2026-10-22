@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr, ValidationError
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import Session
 
-from . import geo, scheduler
+from . import ai, geo, scheduler
 from .bills import estimate_bills
 from .config import get_settings
 from .db import get_session
@@ -49,6 +49,9 @@ def listing_dict(l: Listing, full: bool = False) -> dict[str, Any]:
             "last_seen": l.last_seen.isoformat() if l.last_seen else None,
             "detail_fetched_at": l.detail_fetched_at.isoformat() if l.detail_fetched_at else None,
             "card_text": (l.raw or {}).get("card_text", "")[:1500],
+            "ai_overview": l.ai_overview,
+            "ai_overview_at": l.ai_overview_at.isoformat() if l.ai_overview_at else None,
+            "ai_chat": l.ai_chat or [],
         })
     return d
 
@@ -155,7 +158,53 @@ def get_listing(listing_id: int, s: Session = Depends(get_session)):
                    for e in sorted(l.events, key=lambda e: e.created_at, reverse=True)[:30]]
     profile = load_profile(s)
     d["bills_breakdown"] = estimate_bills(profile.group_size, profile.bills, l.epc, l.bedrooms).to_dict()
+    d["ai_enabled"] = ai.enabled()
     return d
+
+
+def _ai_listing(listing_id: int, s: Session) -> Listing:
+    if not ai.enabled():
+        raise HTTPException(400, "AI isn't set up: add HF_ANTHROPIC_API_KEY to .env and restart.")
+    l = s.get(Listing, listing_id)
+    if not l:
+        raise HTTPException(404)
+    return l
+
+
+@router.post("/listings/{listing_id}/ai/overview")
+def ai_overview(listing_id: int, s: Session = Depends(get_session)):
+    l = _ai_listing(listing_id, s)
+    try:
+        ai.generate_overview(l, load_profile(s))
+    except ai.AIError as e:
+        raise HTTPException(502, str(e))
+    s.commit()
+    return {"ai_overview": l.ai_overview, "ai_overview_at": l.ai_overview_at.isoformat()}
+
+
+class Question(BaseModel):
+    question: str
+
+
+@router.post("/listings/{listing_id}/ai/ask")
+def ai_ask(listing_id: int, body: Question, s: Session = Depends(get_session)):
+    l = _ai_listing(listing_id, s)
+    try:
+        turn = ai.ask(l, load_profile(s), body.question)
+    except ai.AIError as e:
+        raise HTTPException(502, str(e))
+    s.commit()
+    return turn
+
+
+@router.delete("/listings/{listing_id}/ai/chat")
+def ai_clear_chat(listing_id: int, s: Session = Depends(get_session)):
+    l = s.get(Listing, listing_id)
+    if not l:
+        raise HTTPException(404)
+    l.ai_chat = []
+    s.commit()
+    return {"ok": True}
 
 
 class Vote(BaseModel):
@@ -201,6 +250,7 @@ def meta(s: Session = Depends(get_session)):
         "sources": [{"name": k, "label": v.label, "count": counts.get(k, 0)} for k, v in SCRAPERS.items()],
         "areas": [{"name": a, "count": c} for a, c in areas],
         "statuses": USER_STATUSES,
+        "ai_enabled": ai.enabled(),
         "totals": {
             "all": s.scalar(select(func.count()).select_from(Listing)),
             "passing": s.scalar(select(func.count()).select_from(Listing).where(
@@ -348,6 +398,21 @@ def test_email(to: EmailStr):
 def scrape_now():
     started = scheduler.trigger_scrape_now()
     return {"started": started, "message": "Scrape started" if started else "A scrape is already running"}
+
+
+@router.get("/updated")
+def updated(s: Session = Depends(get_session)):
+    """Small payload for the 'last updated' indicator in the header."""
+    last = s.scalar(select(func.max(ScrapeRun.finished_at)).where(ScrapeRun.ok.is_(True)))
+    nxt = scheduler.next_scrape()
+    return {
+        "last_scrape": last.isoformat() if last else None,
+        "next_scrape": nxt.isoformat() if nxt else None,
+        "scraping": scheduler.state["scraping"],
+        "new_24h": s.scalar(select(func.count()).select_from(Listing).where(
+            Listing.first_seen > func.datetime("now", "-1 day"), Listing.passes_filters.is_(True),
+            Listing.duplicate_of_id.is_(None))),
+    }
 
 
 @router.get("/status")

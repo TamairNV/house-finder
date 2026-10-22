@@ -1,0 +1,17 @@
+# Lets the AI overview / Q&A use the Claude Code CLI installed on the host, i.e. your Claude
+# subscription, so no API key is needed. Use alongside the main file:
+#   CLAUDE_BIN=$(readlink -f "$(command -v claude)") \
+#     docker compose -f docker-compose.yml -f docker-compose.claude.yml up -d --build
+# The container runs as your user so Claude Code can refresh its login token in ~/.claude.
+# First time only, hand ./data to your user: docker run --rm -v "$PWD/data:/d" alpine chown -R "$(id -u):$(id -g)" /d
+services:
+  house-finder:
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      - HOME=/home/hf
+      - HF_AI_PROVIDER=claude_cli
+      - HF_CLAUDE_CMD=/opt/claude/claude
+    volumes:
+      - ${CLAUDE_BIN:?set CLAUDE_BIN to the real path of the claude binary}:/opt/claude/claude:ro
+      - ${HOME}/.claude:/home/hf/.claude
+      - ${HOME}/.claude.json:/home/hf/.claude.json
