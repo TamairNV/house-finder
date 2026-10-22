@@ -1,0 +1,33 @@
+{% macro card(l, note=None) -%}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e3e3e3;border-radius:10px;margin:0 0 14px;overflow:hidden">
+  <tr>
+    {% if l.photos %}<td width="180" valign="top" style="padding:0"><a href="{{ base_url }}/listing/{{ l.id }}"><img src="{{ l.photos[0] }}" width="180" style="display:block;width:180px;height:130px;object-fit:cover" alt=""></a></td>{% endif %}
+    <td valign="top" style="padding:10px 14px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;color:#222">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px"><a href="{{ base_url }}/listing/{{ l.id }}" style="color:#1a56db;text-decoration:none">{{ l.title or l.address or 'Listing' }}</a></div>
+      <div style="color:#555;margin-bottom:6px">{{ l.address or '' }}</div>
+      <div><b>£{{ '%.0f'|format(l.total_pppw or 0) }}</b> pppw inc bills{% if not l.bills_included %} <span style="color:#888">(bills {{ 'stated' if l.bills_pppw_stated else 'estimated' }})</span>{% endif %}
+        · {{ l.bedrooms }} bed · {{ l.bathrooms|default('?', true) }} bath
+        {% if l.available_from %}· from {{ l.available_from.strftime('%d %b %Y') }}{% endif %}</div>
+      {% if l.commutes %}<div style="color:#555;margin-top:4px">{% for c in l.commutes %}{{ c.person }} → {{ c.place }}: {{ '%.0f'|format(c.minutes) }} min {{ c.mode }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+      <div style="margin-top:6px"><span style="background:{{ '#0e9f6e' if (l.score or 0) >= profile.email.great_score_threshold else '#6b7280' }};color:#fff;border-radius:12px;padding:2px 8px;font-size:12px">{{ '%.0f'|format(l.score or 0) }}/100</span>
+        <span style="color:#888;font-size:12px">{{ l.source }}</span>
+        {% if note %}<span style="color:#c27803;font-size:12px"> · {{ note }}</span>{% endif %}
+        · <a href="{{ l.url }}" style="font-size:12px;color:#1a56db">open on site</a></div>
+    </td>
+  </tr>
+</table>
+{%- endmacro %}
+<!doctype html><html><body style="margin:0;padding:16px;background:#f6f7f9">
+<div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;padding:18px">
+{% if kind == 'instant' %}
+  <h2 style="font-family:sans-serif;margin:0 0 12px">A really good match just appeared</h2>
+  {{ card(d.new[0]) }}
+{% else %}
+  <p style="font-family:sans-serif;color:#333">Hi {{ r.name }}, here's what's new for <b>{{ profile.name }}</b>.</p>
+  {% if d.new %}<h3 style="font-family:sans-serif">New places</h3>{% for l in d.new %}{{ card(l) }}{% endfor %}{% endif %}
+  {% if d.price_drops %}<h3 style="font-family:sans-serif">Price drops</h3>{% for l, data in d.price_drops %}{{ card(l, 'was £%.0f pppw' % data['from']) }}{% endfor %}{% endif %}
+  {% if d.reminders %}<h3 style="font-family:sans-serif">Still great, don't forget these</h3>{% for l in d.reminders %}{{ card(l, 'reminder') }}{% endfor %}{% endif %}
+  {% if d.status_changes %}<h3 style="font-family:sans-serif">Updates on your shortlist</h3>{% for l, k in d.status_changes %}{{ card(l, k|replace('_', ' ')) }}{% endfor %}{% endif %}
+{% endif %}
+<p style="font-family:sans-serif;font-size:12px;color:#888;margin-top:18px"><a href="{{ base_url }}/">Open house finder</a> · <a href="{{ base_url }}/settings#recipients">Email settings</a></p>
+</div></body></html>

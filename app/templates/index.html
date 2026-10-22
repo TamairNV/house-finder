@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout">
+  <aside class="panel filters" id="filters">
+    <h3>Filters</h3>
+    <div class="field"><label>Search</label><input type="text" id="f-q" placeholder="street, area, notes…"></div>
+    <div class="field"><label class="inline"><input type="checkbox" id="f-passing" checked> Only places that fit my rules</label></div>
+    <div class="field"><label>Max £ per person per week (inc bills)</label><input type="number" id="f-max_pppw" placeholder="{{ profile.budget_max_pppw|int }}"></div>
+    <div class="field"><label>Min score</label><input type="range" id="f-min_score" min="0" max="100" step="5" value="0"><span id="f-min_score-val" class="muted">0</span></div>
+    <div class="field"><label>Max commute (worst person, minutes)</label><input type="number" id="f-max_commute"></div>
+    <div class="field"><label>Min bathrooms</label><input type="number" id="f-min_bathrooms" step="1" min="0"></div>
+    <div class="field"><label>Available between</label><input type="date" id="f-available_after"><input type="date" id="f-available_before" style="margin-top:4px"></div>
+    <div class="field"><label>Bills</label>
+      <select id="f-bills_included"><option value="">Any</option><option value="true">Included only</option><option value="false">Not included</option></select></div>
+    <div class="field"><label class="inline"><input type="checkbox" id="f-favourite"> ★ Favourites only</label>
+      <label class="inline"><input type="checkbox" id="f-has_photos"> Has photos</label></div>
+    <div class="field"><label>My status</label><div class="checklist" id="f-status"></div></div>
+    <div class="field"><label>Sites</label><div class="checklist" id="f-source"></div></div>
+    <div class="field"><label>Areas</label><div class="checklist" id="f-area"></div></div>
+    <div class="field"><label class="inline"><input type="checkbox" id="f-include_inactive"> Show let agreed / removed</label>
+      <label class="inline"><input type="checkbox" id="f-include_duplicates"> Show duplicates</label></div>
+    <button id="reset">Reset filters</button>
+  </aside>
+  <section>
+    <div class="toolbar">
+      <span class="count" id="count">Loading…</span>
+      <div class="spacer"></div>
+      <label>Sort <select id="sort">
+        <option value="score">Best match</option>
+        <option value="price">Cheapest</option>
+        <option value="price_desc">Most expensive</option>
+        <option value="commute">Shortest commute</option>
+        <option value="newest">Newest</option>
+        <option value="available">Earliest available</option>
+        <option value="bathrooms">Most bathrooms</option>
+      </select></label>
+      <div class="seg" id="view">
+        <button data-v="grid" class="on">Cards</button><button data-v="table">Table</button><button data-v="map">Map</button>
+      </div>
+    </div>
+    <div id="results"></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script>window.PROFILE = {{ profile.model_dump(mode='json')|tojson }};</script><script src="/static/listings.js"></script>{% endblock %}

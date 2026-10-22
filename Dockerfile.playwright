@@ -1,0 +1,14 @@
+# Variant with headless Chromium for Cloudflare-protected sites (Zoopla). ~1.5 GB image.
+# Use with: docker compose -f docker-compose.yml -f docker-compose.playwright.yml up -d --build
+FROM mcr.microsoft.com/playwright/python:v1.49.1-noble
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
+    HF_DATA_DIR=/data HF_CONFIG_FILE=/config/config.yaml TZ=Europe/London HF_PLAYWRIGHT_ENABLED=true
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt playwright==1.49.1
+COPY app ./app
+VOLUME ["/data"]
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

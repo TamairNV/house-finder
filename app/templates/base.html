@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}House finder{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/static/common.js"></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">🏠 House finder</a>
+  <nav>
+    <a href="/" class="{{ 'active' if page == 'listings' }}">Listings</a>
+    <a href="/settings" class="{{ 'active' if page == 'settings' }}">Settings</a>
+    <a href="/status" class="{{ 'active' if page == 'status' }}">Status</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="muted">{{ profile.name }} · {{ profile.group_size }} people · move in {{ profile.target_move_in.strftime('%d %b %Y') }}</span>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

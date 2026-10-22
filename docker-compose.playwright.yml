@@ -1,0 +1,6 @@
+services:
+  house-finder:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    shm_size: 1gb

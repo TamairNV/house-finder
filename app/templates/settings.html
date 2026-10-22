@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 style="margin-top:0">Settings</h2>
+<div class="settings-grid">
+  <div class="panel">
+    <h3>The group</h3>
+    <div class="form-row"><label>Search name</label><input id="p-name"></div>
+    <div class="form-row"><label>Number of people (hard limit)</label><input type="number" id="p-group_size" min="1" max="12"></div>
+    <div class="form-row"><label>Spare bedrooms allowed</label><input type="number" id="p-extra_bedrooms_allowed" min="0" max="3">
+      <div class="hint">0 = only houses with exactly as many bedrooms as people.</div></div>
+    <div class="form-row"><label>Min bathrooms per person</label><input type="number" id="p-min_bathrooms_per_person" step="0.01" min="0" max="1">
+      <div class="hint" id="bath-hint"></div></div>
+    <div class="form-row"><label>Unknown bathroom count is OK</label><input type="checkbox" id="p-unknown_bathrooms_ok"></div>
+  </div>
+  <div class="panel">
+    <h3>Money</h3>
+    <div class="form-row"><label>Budget £ pppw (inc bills)</label><input type="number" id="p-budget_pppw"></div>
+    <div class="form-row"><label>Buffer £ pppw</label><input type="number" id="p-budget_buffer_pppw">
+      <div class="hint">Places up to budget + buffer still show, with a lower score.</div></div>
+    <div class="form-row"><label>Estimated bills if not included</label><div id="bills-example" class="muted"></div></div>
+    <details><summary>Bill assumptions</summary><div id="bills-fields" style="margin-top:8px"></div></details>
+  </div>
+  <div class="panel">
+    <h3>Move-in</h3>
+    <div class="form-row"><label>Target move-in</label><input type="date" id="p-target_move_in"></div>
+    <div class="form-row"><label>Earliest acceptable</label><input type="date" id="p-earliest_move_in"></div>
+    <div class="form-row"><label>Latest acceptable</label><input type="date" id="p-latest_move_in"></div>
+    <div class="form-row"><label>Keep places with no date</label><input type="checkbox" id="p-unknown_move_in_ok"></div>
+  </div>
+  <div class="panel">
+    <h3>Preferences</h3>
+    <div class="form-row"><label>Furnished</label><select id="p-furnished"><option>any</option><option>furnished</option><option>unfurnished</option></select></div>
+    <div class="form-row"><label>Drop "professionals only"</label><input type="checkbox" id="p-require_student_friendly"></div>
+    <div class="form-row"><label>Preferred areas</label><input id="p-preferred_areas"><div class="hint">Comma separated; small score boost.</div></div>
+    <div class="form-row"><label>Excluded areas</label><input id="p-excluded_areas"></div>
+    <div class="form-row"><label>Exclude keywords</label><input id="p-exclude_keywords"></div>
+    <div class="form-row"><label>Max km from first place</label><input type="number" id="p-max_distance_km" step="0.5"></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:16px">
+  <h3>People and the places they go</h3>
+  <p class="muted">Add everyone in the group and where they go a lot (uni building, work, gym). Commute times are estimated from distance unless a routing API key is set.</p>
+  <div id="people"></div>
+  <button id="add-person">+ Add person</button>
+</div>
+
+<div class="settings-grid" style="margin-top:16px">
+  <div class="panel">
+    <h3>Sites</h3>
+    <div id="sources"></div>
+    <div class="form-row"><label>Scrape every (hours)</label><input type="number" id="p-scrape_interval_hours" step="0.5" min="1"></div>
+  </div>
+  <div class="panel">
+    <h3>Scoring</h3>
+    <div id="weights"></div>
+    <div class="form-row"><label>"Great place" score</label><input type="number" id="e-great_score_threshold"></div>
+    <div class="form-row"><label>Remind about great places every (days)</label><input type="number" id="e-reminder_every_days"></div>
+    <div class="form-row"><label>Max reminders per place</label><input type="number" id="e-max_reminders"></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:16px" id="recipients-panel">
+  <h3 id="recipients">Who gets emails</h3>
+  <div id="recipient-list"></div>
+  <button id="add-recipient">+ Add recipient</button>
+  <span class="muted" id="smtp-state"></span>
+</div>
+
+<details class="panel" style="margin-top:16px"><summary>Advanced: raw JSON</summary>
+  <textarea id="raw-json" style="min-height:300px;font-family:monospace;font-size:12px"></textarea>
+  <button id="apply-json">Apply JSON</button>
+</details>
+
+<div class="save-bar"><button class="primary" id="save">Save &amp; re-score</button><span id="save-state" class="muted"></span></div>
+{% endblock %}
+{% block scripts %}<script src="/static/settings.js"></script>{% endblock %}

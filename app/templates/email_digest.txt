@@ -1,0 +1,21 @@
+{% macro line(l) -%}
+- {{ l.title or l.address or 'Listing' }} | {{ l.bedrooms }} bed, {{ l.bathrooms|default('?', true) }} bath | £{{ '%.0f'|format(l.total_pppw or 0) }} pppw inc bills | score {{ '%.0f'|format(l.score or 0) }}
+  {% if l.available_from %}Available {{ l.available_from.strftime('%d %b %Y') }}. {% endif %}{{ base_url }}/listing/{{ l.id }}  |  {{ l.url }}
+{%- endmacro %}
+{% if kind == 'instant' %}A really good match just appeared:
+{{ line(d.new[0]) }}
+{% else %}Hi {{ r.name }},
+{% if d.new %}
+NEW PLACES
+{% for l in d.new %}{{ line(l) }}
+{% endfor %}{% endif %}{% if d.price_drops %}
+PRICE DROPS
+{% for l, data in d.price_drops %}{{ line(l) }}  (was £{{ '%.0f'|format(data['from']) }} pppw rent)
+{% endfor %}{% endif %}{% if d.reminders %}
+STILL GREAT, DON'T FORGET THESE
+{% for l in d.reminders %}{{ line(l) }}
+{% endfor %}{% endif %}{% if d.status_changes %}
+UPDATES ON YOUR SHORTLIST
+{% for l, kind in d.status_changes %}{{ line(l) }}  -> {{ kind|replace('_', ' ') }}
+{% endfor %}{% endif %}{% endif %}
+Manage emails: {{ base_url }}/settings#recipients

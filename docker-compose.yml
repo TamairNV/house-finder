@@ -1,0 +1,15 @@
+services:
+  house-finder:
+    build: .
+    container_name: house-finder
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - HF_DATA_DIR=/data
+      - HF_CONFIG_FILE=/config/config.yaml
+    volumes:
+      - ./data:/data
+      - ./config.yaml:/config/config.yaml:ro
+    ports:
+      # 8095 is free on TNV-server (checked 2026-10-22). Bind to LAN/Tailscale only; see PLAN.md.
+      - "8095:8000"

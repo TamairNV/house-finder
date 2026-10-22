@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="detail" data-id="{{ listing_id }}"><div class="empty">Loading…</div></div>
+{% endblock %}
+{% block scripts %}<script>window.PROFILE = {{ profile.model_dump(mode='json')|tojson }};</script><script src="/static/listing.js"></script>{% endblock %}
