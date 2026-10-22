@@ -52,8 +52,12 @@ async function load() {
         ${Object.entries(bd).map(([k, v]) => `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>${LABELS[k] || k}</span><span class="muted">${Math.round(v * 100)}% · weight ${w[k] ?? "?"}</span></div><div class="bar"><span style="width:${Math.round(v * 100)}%"></span></div></div>`).join("")}
       </div>
       <div class="panel section"><h3>Commutes</h3>
-        ${(l.commutes || []).length ? `<table class="list">${l.commutes.map((c) => `<tr><td>${esc(c.person)}</td><td>${esc(c.place)}</td><td>${MODE_ICON[c.mode] || ""} ${Math.round(c.minutes)} min${c.estimated ? "*" : ""}</td><td class="muted">${c.km} km</td></tr>`).join("")}</table>
-          <p class="muted" style="font-size:12px">* estimated from straight-line distance${l.geo_precision !== "exact" ? `; location is approximate (${esc(l.geo_precision || "unknown")})` : ""}</p>` : `<p class="muted">No location yet.</p>`}
+        ${(l.commutes || []).length ? `<table class="list commute-table">${l.commutes.map((c) => { const g = gmapsUrl(l, c); return `<tr><td>${esc(c.person)}</td><td>${esc(c.place)}</td>
+            <td>${MODE_ICON[c.mode] || ""} ${Math.round(c.minutes)} min${c.estimated ? "*" : ""}<div class="muted" style="font-size:12px">${c.km} km</div></td>
+            <td>${g ? `<a href="${g}" target="_blank" rel="noopener">Check ↗</a>` : ""}</td></tr>`; }).join("")}</table>
+          <p class="muted" style="font-size:12px">${l.commutes.some((c) => c.estimated)
+            ? "* estimated from straight-line distance (real route times are only fetched for houses with an exact location and the right number of bedrooms)"
+            : "Real route times from openrouteservice. Tap Check to compare with Google Maps."}${l.geo_precision !== "exact" ? ` Location is approximate (${esc(l.geo_precision || "unknown")}).` : ""}</p>` : `<p class="muted">No location yet.</p>`}
         <div id="minimap" style="height:240px;border-radius:10px;margin-top:8px"></div>
       </div>
       <div class="panel section"><h3>Money</h3><div class="kv">

@@ -400,3 +400,7 @@ body.dirty .save-bar { display: flex; }
 }
 .card .actions .btn { white-space: nowrap; }
 @media (max-width: 900px) { .card .actions { gap: 6px; } .card .actions select { flex: 1; min-width: 0; } .card .actions .spacer { display: none; } }
+.card .actions { flex-wrap: wrap; }
+.card .actions .site-btn { flex: none; margin-left: auto; }
+@media (max-width: 900px) { .wide-only { display: none; } .card .actions select { flex: 1 1 80px; } }
+.commute-table td { vertical-align: top; }

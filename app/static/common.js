@@ -43,6 +43,19 @@ function priceBlock(l) {
           <div class="muted" style="font-size:12px">${money(l.rent_pppw)} rent ${esc(billsNote)}${l.rent_total_pcm ? ` · ${money(l.rent_total_pcm)} pcm total` : ""}</div>`;
 }
 
+// Google Maps directions for one commute, to sanity-check our times.
+const GMAPS_MODE = { walk: "walking", cycle: "bicycling", transit: "transit", drive: "driving" };
+function placeCoords(c) {
+  const p = (window.PROFILE?.people || []).find((x) => x.name === c.person);
+  const pl = p && (p.places || []).find((x) => x.label === c.place);
+  return pl && pl.lat != null ? [pl.lat, pl.lng] : null;
+}
+function gmapsUrl(l, c) {
+  const to = placeCoords(c);
+  if (l.lat == null || !to) return null;
+  return `https://www.google.com/maps/dir/?api=1&origin=${l.lat},${l.lng}&destination=${to[0]},${to[1]}&travelmode=${GMAPS_MODE[c.mode] || "walking"}`;
+}
+
 function commuteChips(l) {
   return (l.commutes || []).map((c) => {
     const over = c.minutes > c.max_minutes;
