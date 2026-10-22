@@ -310,6 +310,9 @@ def run_source(source: str, profile: Profile | None = None, max_pages: int | Non
                         existing.detail_fetched_at < utcnow() - timedelta(days=DETAIL_REFRESH_DAYS)
                     if existing is not None and existing.user_status in ("rejected", "hidden"):
                         stale = False
+                    existing_id = existing.id if existing is not None else None
+                    existing_priced = existing is not None and existing.rent_pppw is not None
+                stub = bool(raw.raw.get("stub"))
                 if details and stale and details_done < MAX_DETAILS_PER_RUN and _is_candidate(raw, profile):
                     try:
                         raw = scraper.fetch_detail(raw)
@@ -320,6 +323,14 @@ def run_source(source: str, profile: Profile | None = None, max_pages: int | Non
                         raise
                     except Exception as e:  # one bad detail page shouldn't kill the run
                         log.warning("[%s] detail %s failed: %s", source, raw.url, e)
+                # Sitemap-only finds (no card data) are stored once their detail page shows a live, priced listing.
+                if stub and not raw.detail_fetched:
+                    if existing_priced:  # still in the sitemap: keep it alive without wiping its details
+                        with session_scope() as session:
+                            session.get(Listing, existing_id).last_seen = utcnow()
+                    continue
+                if stub and existing_id is None and (raw.let_agreed or raw.price_amount is None):
+                    continue
                 with session_scope() as session:
                     listing, is_new = upsert(session, raw, profile)
                     enrich_and_score(session, listing, profile)

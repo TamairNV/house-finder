@@ -204,3 +204,45 @@ def test_rescore_batches_routing_calls(session, monkeypatch):
     assert l.commutes[0]["minutes"] == 12.0 and not l.commutes[0]["estimated"]
     rescore_all(session, p)
     assert calls == [5]
+
+
+def test_sitemap_stubs_only_stored_when_live_and_priced(session, monkeypatch):
+    from sqlalchemy import select
+    from app import pipeline
+
+    class FakeFetcher:
+        requests = 0
+
+        def close(self):
+            pass
+
+    def stub(i):
+        return RawListing(source="sturents", source_id=str(i), url=f"u{i}", raw={"stub": True})
+
+    class FakeScraper:
+        fetcher = FakeFetcher()
+
+        def search(self, profile, loc, pages):
+            yield from (stub(i) for i in (1, 2, 3))
+
+        def fetch_detail(self, r):
+            r.detail_fetched = True
+            if r.source_id == "1":  # live, priced
+                r.bedrooms, r.price_amount, r.price_period, r.price_per_person = 4, 120, "pw", True
+            elif r.source_id == "2":  # "Property unavailable"
+                r.bedrooms, r.let_agreed = 4, True
+            else:
+                raise RuntimeError("boom")  # detail failed: nothing to show
+            return r
+
+    monkeypatch.setattr(pipeline, "get_scraper", lambda name: FakeScraper())
+    p = profile()
+    session.commit()
+    pipeline.run_source("sturents", p, fetch_details=True)
+    session.expire_all()
+    assert [l.source_id for l in session.scalars(select(Listing))] == ["1"]
+    # Next run without a detail fetch: the stored one stays alive and keeps its details.
+    pipeline.run_source("sturents", p, fetch_details=False)
+    session.expire_all()
+    l = session.scalars(select(Listing)).one()
+    assert l.bedrooms == 4 and l.rent_pppw == 120 and l.site_status == "active"

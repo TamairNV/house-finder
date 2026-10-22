@@ -399,3 +399,19 @@ def test_unihomes_detail_photos_deduped_to_this_property():
       <img src="https://cdn-p1.unihomes.co.uk/locations/newcastle/city.jpg">"""
     r = get_scraper("unihomes").parse_detail(html, RawListing(source="unihomes", source_id="1363893259", url="u"))
     assert r.photos == [f"https://www.unihomes.co.uk/cdn-cgi/image/width=1200,quality=90/{f}"]
+
+
+def test_sturents_unavailable_detail_and_text_bathrooms():
+    # Trimmed from a real "property unavailable" page (fetched 2026-10-22 from TNV-server).
+    html = """<html><head><script type="application/ld+json">{"@context":"https://schema.org","@type":"House",
+      "name":"Highbury","numberOfBedrooms":6,"numberOfBathroomsTotal":1,
+      "address":{"@type":"PostalAddress","streetAddress":"Highbury","addressRegion":"Newcastle upon Tyne","postalCode":"NE2 3DY"},
+      "geo":{"@type":"GeoCoordinates","latitude":54.99,"longitude":-1.6}}</script></head><body>
+      <div class="u-xs-display-none u-md-display-block"><p class="new--paragraph new--property-unavailable-bar-text">
+        <strong class="new--heading-300 new--property-unavailable-bar-title">Property unavailable:</strong> This
+        property may have been let or taken off the market.</p></div>
+      <div class="description"><p>This six bedroom house has three bathrooms, one on each floor, and all are finished
+        in a very modern style.</p></div></body></html>"""
+    d = get_scraper("sturents").parse_detail(html, RawListing(source="sturents", source_id="351", url="u"))
+    assert d.let_agreed and not d.available_now
+    assert d.bedrooms == 6 and d.postcode == "NE2 3DY" and d.bathrooms == 3

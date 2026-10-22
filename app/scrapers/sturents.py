@@ -17,7 +17,7 @@ import logging
 import re
 
 from ..profile import Profile, SourceLocation
-from ..textparse import clean, detect_bills_included, parse_bedrooms, parse_date_fragment, parse_money
+from ..textparse import clean, detect_bills_included, parse_bathrooms, parse_bedrooms, parse_date_fragment, parse_money
 from .base import RawListing
 from .extract import image_urls, json_ld, soupify, text_of, to_float, to_int
 from .generic import CardScraper
@@ -51,14 +51,18 @@ class StuRentsScraper(CardScraper):
             if m:
                 slugs.add(m.group(1))
             yield r
-        # Sitemap walk for the rest (only ids/urls; details fill in the rest). Listing URLs use the
-        # full city slug ("newcastle-upon-tyne") even though the landing page is /newcastle.
+        # Sitemap walk for the rest. The sitemap lists every house StuRents has ever had (most already let), so
+        # these are stubs: the pipeline only keeps one once its detail page shows it's available with a price.
+        # Newest ids first, so the per-run detail budget goes on houses most likely to be on the market.
+        # Listing URLs use the full city slug ("newcastle-upon-tyne") even though the landing page is /newcastle.
         try:
+            stubs = []
             for url in self._sitemap_urls(sorted(slugs) or [loc.sturents or ""], limit_maps=max_pages):
                 m = re.search(DETAIL_RE, url)
                 if m and m.group(1) not in seen:
                     seen.add(m.group(1))
-                    yield RawListing(source=self.name, source_id=m.group(1), url=url)
+                    stubs.append(RawListing(source=self.name, source_id=m.group(1), url=url, raw={"stub": True}))
+            yield from sorted(stubs, key=lambda r: -int(r.source_id))
         except Exception as e:  # noqa: BLE001  sitemap is a bonus, not essential
             log.warning("[sturents] sitemap walk failed: %s", e)
 
@@ -149,6 +153,10 @@ class StuRentsScraper(CardScraper):
     def parse_detail(self, html: str, base: RawListing) -> RawListing:
         r = super().parse_detail(html, base)
         soup = soupify(html)
+        # "Property unavailable: This property may have been let or taken off the market."
+        if soup.select_one("[class*=property-unavailable]"):
+            r.let_agreed = True
+            r.available_now = False
         for item in json_ld(soup):
             if isinstance(item, dict) and item.get("@type") in ("House", "Apartment", "Accommodation", "SingleFamilyResidence"):
                 r.bedrooms = to_int(item.get("numberOfBedrooms")) or r.bedrooms
@@ -187,6 +195,10 @@ class StuRentsScraper(CardScraper):
                 dep = parse_money(text_of(strong.parent))
                 r.deposit = dep or None  # £0 means "not stated" more often than "no deposit"
                 break
+        # JSON-LD often says 1 bathroom when the description lists more ("three bathrooms, one on each floor").
+        text_baths = parse_bathrooms(r.description or "")
+        if text_baths and text_baths > (r.bathrooms or 0):
+            r.bathrooms = text_baths
         photos = [u for u in image_urls(html, "public.sturents.com/photos")]
         if photos:
             r.photos = photos

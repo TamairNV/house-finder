@@ -146,6 +146,12 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
 - Many listings are agent feeds (Walton Robinson etc.) duplicated on Rightmove → dedupe matters.
 
 ### StuRents ⚠️ partial
+- 2026-10-22: of 1,564 stored StuRents rows, ~1,540 had no price: almost all came from the sitemap, which lists every
+  house ever listed (mostly let; page shows "Property unavailable"). Now sitemap URLs are stubs (`raw.stub`), newest
+  ids first; a stub is only stored once its detail page shows a live, priced listing; stored ones stay alive without a
+  refetch. Unavailable pages -> let_agreed. Bathrooms = max(JSON-LD, description text). `python -m app.cli prune-stubs
+  --yes` deletes the old empty rows. The /s/ search page is an empty shell and its data comes from /ajax (robots-
+  disallowed), so the landing page (8 cards) + sitemap stubs is as far as we go politely.
 - robots: `Disallow: /` but allows `/student-accommodation`, `/house`, `/listings`, `/sitemap`, … ; `/ajax/*` disallowed.
 - City landing `/student-accommodation/newcastle-upon-tyne` server-renders only **8 cards** (`a[data-house]` JSON with
   beds, price pppw, from, bills_included, lat/lng, photo_urls, description, landlord, rental_type).

@@ -88,6 +88,24 @@ def cmd_rescore(a) -> None:
         print(f"re-scored {rescore_all(s)} listings")
 
 
+def cmd_prune_stubs(a) -> None:
+    """Delete sitemap-only StuRents rows that never got a price (and nobody starred, voted on or noted)."""
+    from .models import AIUsage, Event
+    with session_scope() as s:
+        rows = [l for l in s.scalars(select(Listing).where(Listing.source == "sturents", Listing.rent_pppw.is_(None)))
+                if not (l.favourite or l.votes or l.notes or l.ai_overview or l.ai_chat)]
+        ids = [l.id for l in rows]
+        for i in range(0, len(ids), 500):
+            chunk = ids[i:i + 500]
+            s.query(Event).filter(Event.listing_id.in_(chunk)).delete(synchronize_session=False)
+            s.query(AIUsage).filter(AIUsage.listing_id.in_(chunk)).update({AIUsage.listing_id: None}, synchronize_session=False)
+            s.query(Listing).filter(Listing.duplicate_of_id.in_(chunk)).update({Listing.duplicate_of_id: None}, synchronize_session=False)
+            s.query(Listing).filter(Listing.id.in_(chunk)).delete(synchronize_session=False)
+        print(f"deleted {len(ids)} empty StuRents listings" + ("" if a.yes else " (dry run: add --yes)"))
+        if not a.yes:
+            s.rollback()
+
+
 def cmd_digest(a) -> None:
     from .emailer import send_digest
     with session_scope() as s:
@@ -159,6 +177,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("file"); p.add_argument("--limit", type=int, default=5); p.set_defaults(fn=cmd_parse)
     p = sub.add_parser("probe"); p.add_argument("source", choices=list(SCRAPERS)); p.set_defaults(fn=cmd_probe)
     p = sub.add_parser("rescore"); p.set_defaults(fn=cmd_rescore)
+    p = sub.add_parser("prune-stubs"); p.add_argument("--yes", action="store_true"); p.set_defaults(fn=cmd_prune_stubs)
     p = sub.add_parser("digest"); p.add_argument("--to", required=True); p.add_argument("--send", action="store_true"); p.set_defaults(fn=cmd_digest)
     p = sub.add_parser("demo"); p.add_argument("-n", type=int, default=60); p.set_defaults(fn=cmd_demo)
     a = ap.parse_args(argv)
