@@ -107,3 +107,21 @@ class UniHomesScraper(CardScraper):
         r.card_text = f"£{price} per person per week bills included {p.get('availableFrom') or ''}"
         r.raw = {"rooms_available": p.get("roomsAvailableCount"), "advert_type": p.get("advertType")}
         return r
+
+    def parse_detail(self, html: str, base: RawListing) -> RawListing:
+        r = super().parse_detail(html, base)
+        # The page repeats every photo in many cdn-cgi resize variants and adds site/landlord images;
+        # keep this property's files once each, at the largest size seen.
+        best: dict[str, tuple[int, str]] = {}
+        for u in r.photos:
+            m = re.search(rf"cdn-p\d\.unihomes\.co\.uk/property/{re.escape(base.source_id)}/[^/?#]+", u)
+            if not m:
+                continue
+            w = re.search(r"width=(\d+)", u)
+            width = int(w.group(1)) if w else 10_000  # the bare CDN file is the original
+            key = m.group(0)
+            if key not in best or width > best[key][0]:
+                best[key] = (width, u)
+        if best:
+            r.photos = [u for _, u in best.values()]
+        return r

@@ -345,3 +345,57 @@ def test_spareroom_detail_room_rents_and_available_now():
     r = s.parse_detail(html, RawListing(source="spareroom", source_id="1", url="u"))
     assert r.price_amount == 700 and r.price_period == "pcm" and r.price_per_person
     assert r.available_now and r.available_from == s.today
+
+
+def test_sturents_city_page_cards_with_empty_data_house():
+    # /student-accommodation/newcastle ships data-house="{}"; details come from the card + JSON-LD Residence.
+    ld = {"@type": "Residence", "name": "6 bed student house to rent on Jesmond Road, Newcastle, NE2",
+          "description": "Shared house in Newcastle for £165 pppw from Student Cribs. See more details - 428185",
+          "address": {"@type": "PostalAddress", "streetAddress": "Jesmond Road", "addressLocality": "Newcastle"}}
+    html = (f'<script type="application/ld+json">{json.dumps(ld)}</script>'
+            '<a href="https://sturents.com/student-accommodation/newcastle-upon-tyne/house/jesmond-road/428185?contract=625640" '
+            'class="new--listing-item js-listing-item" data-house="{}" data-house-id="428185" '
+            'data-photo="https://public.sturents.com/photo-thumbs/9959512.jpg">'
+            '<div>View listing</div><div>6 beds</div><div>£165 pppw</div><div>Jesmond Road</div>'
+            '<div>Available from 5 Jul 2027</div></a>')
+    [r] = get_scraper("sturents").parse_search(html, "https://sturents.com")
+    assert r.source_id == "428185" and r.bedrooms == 6 and r.price_amount == 165 and r.price_per_person
+    assert r.available_from == date(2027, 7, 5) and r.agent_name == "Student Cribs"
+    assert r.address == "Jesmond Road, Newcastle" and r.photos == ["https://public.sturents.com/photos/9959512.jpg"]
+
+
+def test_sturents_sitemap_uses_full_city_slug_only():
+    pages = {
+        "https://sturents.com/sitemap/index.xml": "<sitemapindex>"
+        "<sitemap><loc>https://sturents.com/sitemap/houses.xml</loc></sitemap>"
+        "<sitemap><loc>https://sturents.com/sitemap/houses/aberdeen.xml</loc></sitemap>"
+        "<sitemap><loc>https://sturents.com/sitemap/houses/newcastle-under-lyme.xml</loc></sitemap>"
+        "<sitemap><loc>https://sturents.com/sitemap/houses-deactivated/newcastle-upon-tyne.xml</loc></sitemap>"
+        "<sitemap><loc>https://sturents.com/sitemap/houses/newcastle-upon-tyne.xml</loc></sitemap></sitemapindex>",
+        "https://sturents.com/sitemap/houses/newcastle-upon-tyne.xml": "<urlset>"
+        "<url><loc>https://sturents.com/student-accommodation/newcastle-upon-tyne/house/a-road/111</loc></url>"
+        "<url><loc>https://sturents.com/student-accommodation/newcastle-upon-tyne/house/b-road/222</loc></url></urlset>",
+    }
+
+    class FakeFetcher:
+        def __init__(self):
+            self.got = []
+
+        def get(self, url, **kw):
+            self.got.append(url)
+            return pages[url]
+
+    f = FakeFetcher()
+    urls = get_scraper("sturents", f)._sitemap_urls(["newcastle-upon-tyne"], limit_maps=3)
+    assert [u.rsplit("/", 1)[1] for u in urls] == ["111", "222"]
+    assert f.got == ["https://sturents.com/sitemap/index.xml", "https://sturents.com/sitemap/houses/newcastle-upon-tyne.xml"]
+
+
+def test_unihomes_detail_photos_deduped_to_this_property():
+    f = "https://cdn-p1.unihomes.co.uk/property/1363893259/house-1.jpg"
+    html = f"""<img src="https://www.unihomes.co.uk/cdn-cgi/image/width=390,quality=90/{f}">
+      <img src="https://www.unihomes.co.uk/cdn-cgi/image/width=1200,quality=90/{f}">
+      <img src="https://cdn-p1.unihomes.co.uk/property/999/other.jpg">
+      <img src="https://cdn-p1.unihomes.co.uk/locations/newcastle/city.jpg">"""
+    r = get_scraper("unihomes").parse_detail(html, RawListing(source="unihomes", source_id="1363893259", url="u"))
+    assert r.photos == [f"https://www.unihomes.co.uk/cdn-cgi/image/width=1200,quality=90/{f}"]

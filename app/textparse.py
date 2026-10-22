@@ -157,6 +157,9 @@ class RentGuess:
     source: str  # which rule produced it, for debugging
 
 
+MIN_WHOLE_PPPW = 50  # below this a "whole property" price must really be per room
+
+
 def guess_rent(text: str, bedrooms: int | None, people: int | None = None,
                structured_amount: float | None = None, structured_period: str | None = None,
                structured_per_person: bool = False) -> RentGuess:
@@ -204,6 +207,12 @@ def guess_rent(text: str, bedrooms: int | None, people: int | None = None,
         if structured_per_person:
             pppw = round(weekly, 2)
             total = round(pppw * WEEKS_PER_MONTH * divisor, 2) if divisor else None
+        elif divisor and divisor >= 3 and weekly / divisor < MIN_WHOLE_PPPW:
+            # e.g. Rightmove "5 bedroom house share" at £450 pcm: that is one room's rent, since no
+            # whole house for 3+ people goes for under ~£50 per person per week.
+            pppw = round(weekly, 2)
+            total = round(pppw * WEEKS_PER_MONTH * divisor, 2)
+            return RentGuess(pppw, total, bills_inc, bills_pkg, "structured-room")
         else:
             total = round(weekly * WEEKS_PER_MONTH, 2)
             pppw = round(weekly / divisor, 2) if divisor else None

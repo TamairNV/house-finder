@@ -126,3 +126,12 @@ def test_academic_year():
 def test_furnished():
     assert tp.parse_furnished("Furnish type: Furnished") == "furnished"
     assert tp.parse_furnished("Unfurnished") == "unfurnished"
+
+
+def test_guess_rent_implausibly_cheap_whole_price_is_per_room():
+    # Rightmove "5 bedroom house share" listed at £450 pcm: that's one room, not the house.
+    g = tp.guess_rent("5 bedroom house share", bedrooms=5, people=5, structured_amount=450, structured_period="pcm")
+    assert g.source == "structured-room" and g.pppw == round(450 * 12 / 52, 2)
+    # A cheap but real whole house (£1,200 pcm for 5 = ~£55 pppw) is left alone.
+    g = tp.guess_rent("5 bed terraced house", bedrooms=5, people=5, structured_amount=1200, structured_period="pcm")
+    assert g.source == "structured" and g.total_pcm == 1200

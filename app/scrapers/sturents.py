@@ -44,12 +44,17 @@ class StuRentsScraper(CardScraper):
             return
         seen: set[str] = set()
         html = self.fetcher.get(self.search_url(profile, loc, 0))
+        slugs: set[str] = set()
         for r in self.parse_search(html, BASE):
             seen.add(r.source_id)
+            m = re.search(r"/student-accommodation/([^/]+)/", r.url)
+            if m:
+                slugs.add(m.group(1))
             yield r
-        # Sitemap walk for the rest (only ids/urls; details fill in the rest)
+        # Sitemap walk for the rest (only ids/urls; details fill in the rest). Listing URLs use the
+        # full city slug ("newcastle-upon-tyne") even though the landing page is /newcastle.
         try:
-            for url in self._sitemap_urls(loc.sturents or "", limit_maps=max_pages):
+            for url in self._sitemap_urls(sorted(slugs) or [loc.sturents or ""], limit_maps=max_pages):
                 m = re.search(DETAIL_RE, url)
                 if m and m.group(1) not in seen:
                     seen.add(m.group(1))
@@ -57,27 +62,34 @@ class StuRentsScraper(CardScraper):
         except Exception as e:  # noqa: BLE001  sitemap is a bonus, not essential
             log.warning("[sturents] sitemap walk failed: %s", e)
 
-    def _sitemap_urls(self, city: str, limit_maps: int) -> list[str]:
+    def _sitemap_urls(self, cities: list[str], limit_maps: int) -> list[str]:
+        """Listing URLs from the per-city house sitemaps (sitemap/houses/{city}.xml)."""
         index = self.fetcher.get(f"{BASE}/sitemap/index.xml")
         maps = re.findall(r"<loc>\s*([^<]+?)\s*</loc>", index)
-        # Prefer sub-sitemaps that mention houses/accommodation
-        maps.sort(key=lambda u: 0 if re.search(r"house|accommodation|listing", u) else 1)
+        wanted = [m for m in maps if any(m.endswith(f"/sitemap/houses/{c}.xml") for c in cities)]
         urls: list[str] = []
-        for sm in maps[: max(limit_maps, 1)]:
+        for sm in wanted[: max(limit_maps, 1)]:
             body = self.fetcher.get(sm)
-            urls += [u for u in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", body) if f"/student-accommodation/{city}" in u]
+            urls += [u for u in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", body)
+                     if any(f"/student-accommodation/{c}/" in u for c in cities)]
         return urls
 
     def parse_search(self, html: str, url: str) -> list[RawListing]:
         soup = soupify(html)
         out = []
+        residences = self._residences(soup)
         for a in soup.select("a[data-house]"):
             try:
                 d = json.loads(htmllib.unescape(a["data-house"]))
             except (json.JSONDecodeError, KeyError):
                 continue
-            if not isinstance(d, dict) or not d:
-                continue  # empty data-house="[]" on template/placeholder anchors
+            if not isinstance(d, dict):
+                continue  # data-house="[]" on template/placeholder anchors
+            if not d:
+                # /student-accommodation/{city} pages ship data-house="{}": read the card instead
+                if a.get("data-house-id") and re.search(DETAIL_RE, a.get("href") or ""):
+                    out.append(self._card_from_markup(a, residences))
+                continue
             href = a.get("href") or d.get("url") or ""
             m = re.search(DETAIL_RE, href)
             lid = str(d.get("house_id") or (m.group(1) if m else ""))
@@ -105,6 +117,34 @@ class StuRentsScraper(CardScraper):
                 r.raw = {"rental_type": d["rental_type"]}
             out.append(r)
         return out or super().parse_search(html, url)
+
+    @staticmethod
+    def _residences(soup) -> dict[str, dict]:
+        """JSON-LD Residence blocks keyed by house id (their description ends with " - <id>")."""
+        out = {}
+        for item in json_ld(soup):
+            if isinstance(item, dict) and item.get("@type") == "Residence":
+                m = re.search(r"-\s*(\d+)\s*$", item.get("description") or "")
+                if m:
+                    out[m.group(1)] = item
+        return out
+
+    def _card_from_markup(self, a, residences: dict[str, dict]) -> RawListing:
+        lid = a["data-house-id"]
+        href = a["href"]
+        text = text_of(a)
+        r = self.card_to_raw(lid, href if href.startswith("http") else BASE + href, text, a)
+        r.photos = [a["data-photo"].replace("/photo-thumbs/", "/photos/")] if a.get("data-photo") else []
+        ld = residences.get(lid) or {}
+        addr = ld.get("address") if isinstance(ld.get("address"), dict) else {}
+        if addr.get("streetAddress"):
+            r.title = addr["streetAddress"]
+            r.address = ", ".join(x for x in [addr.get("streetAddress"), addr.get("addressLocality")] if x)
+        m = re.search(r"from (.+?)\. See more", ld.get("description") or "")
+        if m:
+            r.agent_name = m.group(1)
+        r.student_let = True
+        return r
 
     def parse_detail(self, html: str, base: RawListing) -> RawListing:
         r = super().parse_detail(html, base)
