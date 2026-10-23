@@ -38,7 +38,7 @@
 ### Done (in this repo)
 - FastAPI app + SQLite (SQLAlchemy 2), APScheduler background jobs, vanilla-JS UI (no build step), Leaflet maps (vendored).
 - Profile/settings model (`app/profile.py`) editable in the UI (Settings page) and seeded from `config.yaml` on first run.
-- Scrapers for Rightmove, OpenRent, UniHomes, Accommodation for Students (AFS), StuRents, SpareRoom, Zoopla (disabled).
+- Scrapers for Rightmove, OpenRent, UniHomes, Accommodation for Students (AFS), StuRents, SpareRoom, Hive Estates, Zoopla (disabled).
 - Free-text parsing (`app/textparse.py`): pppw/pcm prices, "inc bills" variants, bills packages, availability dates,
   bedrooms/bathrooms, postcodes, academic years. 44 unit tests built from real listing snippets.
 - Normalisation, enrichment (postcodes.io geocoding, commute estimates, bills estimate), hard filters + 0-100 score,
@@ -171,6 +171,12 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
   (per-person) rent; "Double room"/"Single room" skipped. Detail per-room rents in `.feature--price_room_only`
   (`<dt>£750 pcm</dt><dd>double (En suite)</dd>`). Detail `dl.feature-list` dt/dd;
   `location: {latitude: "..", longitude: ".."}`. No bathroom field. Probably not worth many pages.
+
+### Hive Estates ✅
+- 2026-10-23: hiveestates.com (WordPress fed from Alto). robots.txt only blocks /wp-admin/. Walk
+  `/properties/page/{n}/` (12 per page, ~5 pages); the Student filter doesn't narrow anything. Prices are pcm for the
+  whole property (single-room HMO lets show "1 bedroom, N bathrooms"). Mostly 1–4 beds, so few pass the 5-bed rule;
+  some also come in via Rightmove (dedupe merges them). Parser: `app/scrapers/hive.py`, fixtures `tests/fixtures/hive_*`.
 
 ### Zoopla ❌ blocked
 - Cloudflare "Just a moment" 403 for curl. robots also disallows `/search/`, `/property/` etc. but `/to-rent/property/{area}/`

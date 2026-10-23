@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .afs import AFSScraper
 from .base import Fetcher, Scraper
+from .hive import HiveScraper
 from .openrent import OpenRentScraper
 from .rightmove import RightmoveScraper
 from .spareroom import SpareRoomScraper
@@ -11,7 +12,7 @@ from .zoopla import ZooplaScraper
 
 SCRAPERS: dict[str, type[Scraper]] = {
     s.name: s for s in [RightmoveScraper, ZooplaScraper, OpenRentScraper, SpareRoomScraper,
-                        StuRentsScraper, AFSScraper, UniHomesScraper]
+                        StuRentsScraper, AFSScraper, UniHomesScraper, HiveScraper]
 }
 
 

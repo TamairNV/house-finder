@@ -20,7 +20,7 @@ const money = (n, dp = 0) => (n == null ? "?" : "£" + Number(n).toLocaleString(
 const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "?");
 const fmtDateTime = (iso) => (iso ? new Date(iso + (iso.endsWith("Z") || iso.includes("+") ? "" : "Z")).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
 const MODE_ICON = { walk: "🚶", cycle: "🚲", transit: "🚌", drive: "🚗" };
-const SOURCE_LABEL = { rightmove: "Rightmove", zoopla: "Zoopla", openrent: "OpenRent", spareroom: "SpareRoom", sturents: "StuRents", afs: "AFS", unihomes: "UniHomes" };
+const SOURCE_LABEL = { rightmove: "Rightmove", zoopla: "Zoopla", openrent: "OpenRent", spareroom: "SpareRoom", sturents: "StuRents", afs: "AFS", unihomes: "UniHomes", hive: "Hive Estates" };
 
 function toast(msg, ms = 2500) {
   const t = document.createElement("div");

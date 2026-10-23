@@ -415,3 +415,21 @@ def test_sturents_unavailable_detail_and_text_bathrooms():
     d = get_scraper("sturents").parse_detail(html, RawListing(source="sturents", source_id="351", url="u"))
     assert d.let_agreed and not d.available_now
     assert d.bedrooms == 6 and d.postcode == "NE2 3DY" and d.bathrooms == 3
+
+
+def test_hive_search_and_detail():
+    # Trimmed from real hiveestates.com pages (fetched 2026-10-23 from TNV-server).
+    from pathlib import Path
+    fx = Path(__file__).parent / "fixtures"
+    s = get_scraper("hive")
+    cards = s.parse_search((fx / "hive_search.html").read_text(), "u")
+    assert [c.source_id for c in cards] == ["14975045", "18792825", "18792824"]
+    assert cards[0].let_agreed and not cards[1].let_agreed
+    assert cards[1].price_amount == 675 and cards[1].price_period == "pcm" and cards[1].bedrooms == 1
+    assert cards[0].url.startswith("https://hiveestates.com/property/") and cards[0].photos
+    d = s.parse_detail((fx / "hive_detail.html").read_text(), RawListing(source="hive", source_id="1", url="u"))
+    assert d.price_amount == 1430 and d.price_period == "pcm" and not d.price_per_person
+    assert d.bedrooms == 3 and d.bathrooms == 1 and d.available_from == date(2026, 11, 1)
+    assert round(d.lat, 3) == 54.990 and d.photos and d.key_features and d.description
+    assert s.search_url(Profile(), None, 0).endswith("/properties/")
+    assert s.search_url(Profile(), None, 2).endswith("/properties/page/3/")

@@ -42,6 +42,7 @@ class SourceLocation(BaseModel):
     sturents: str | None = "newcastle"
     afs: str | None = "newcastle"
     unihomes: str | None = "newcastle"
+    hive: str | None = "newcastle"  # Newcastle-only agent; any value enables it
 
 
 class SourceConfig(BaseModel):
@@ -132,6 +133,7 @@ class Profile(BaseModel):
         "sturents": SourceConfig(max_pages=3),  # pages = sub-sitemaps walked
         "afs": SourceConfig(max_pages=8),
         "unihomes": SourceConfig(max_pages=10, fetch_details=False),  # search JSON has nearly everything
+        "hive": SourceConfig(max_pages=6),  # Hive Estates agent site, ~60 lets
     })
     use_routing_api: bool = False  # real walk/cycle/drive times via openrouteservice (needs HF_ORS_API_KEY)
     scrape_interval_hours: float = 4.0
@@ -147,6 +149,9 @@ class Profile(BaseModel):
             raise ValueError("group_size must be >= 1")
         if self.earliest_move_in > self.latest_move_in:
             raise ValueError("earliest_move_in must be before latest_move_in")
+        # Sources added in later versions switch on for profiles saved before they existed.
+        for name, cfg in type(self).model_fields["sources"].default_factory().items():
+            self.sources.setdefault(name, cfg)
         return self
 
     @property
