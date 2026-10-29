@@ -6,6 +6,7 @@
     python -m app.cli probe rightmove                               # fetch page 1 + one detail, print what parsed
     python -m app.cli rescore
     python -m app.cli digest --to you@example.com [--send]           # preview (or send) a digest
+    python -m app.cli export-listings out.json                       # scraped fields only, for debugging parsers
     python -m app.cli demo                                           # load fake listings to try the UI
 """
 from __future__ import annotations
@@ -106,6 +107,22 @@ def cmd_prune_stubs(a) -> None:
             s.rollback()
 
 
+# Scraped (public) fields only: no notes, votes, stars, AI or user status, so the file is safe to share.
+EXPORT_FIELDS = ["id", "source", "source_id", "url", "title", "address", "area", "postcode", "outcode", "lat", "lng",
+                 "geo_precision", "property_type", "bedrooms", "bathrooms", "furnished", "student_let", "rent_pppw",
+                 "rent_total_pcm", "price_source", "bills_included", "bills_pppw_stated", "total_pppw",
+                 "available_from", "available_now", "description", "key_features", "agent_name", "photos",
+                 "site_status", "duplicate_of_id", "passes_filters", "first_seen"]
+
+
+def cmd_export_listings(a) -> None:
+    with session_scope() as s:
+        rows = [{f: getattr(l, f) for f in EXPORT_FIELDS} | {"card_text": (l.raw or {}).get("card_text")}
+                for l in s.scalars(select(Listing).where(Listing.site_status != "removed"))]
+    Path(a.file).write_text(json.dumps(rows, default=str))
+    print(f"wrote {len(rows)} listings to {a.file}")
+
+
 def cmd_digest(a) -> None:
     from .emailer import send_digest
     with session_scope() as s:
@@ -179,6 +196,7 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("rescore"); p.set_defaults(fn=cmd_rescore)
     p = sub.add_parser("prune-stubs"); p.add_argument("--yes", action="store_true"); p.set_defaults(fn=cmd_prune_stubs)
     p = sub.add_parser("digest"); p.add_argument("--to", required=True); p.add_argument("--send", action="store_true"); p.set_defaults(fn=cmd_digest)
+    p = sub.add_parser("export-listings"); p.add_argument("file"); p.set_defaults(fn=cmd_export_listings)
     p = sub.add_parser("demo"); p.add_argument("-n", type=int, default=60); p.set_defaults(fn=cmd_demo)
     a = ap.parse_args(argv)
     init_db()
