@@ -211,7 +211,8 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
 - Scoring splits whole-property rent by group size only when bedrooms ≥ group size; a 2 bed is split two ways.
 - Rent sanity (2026-10-29): per-person figures under £55pw are bills/fees, never rent; "Bills: £35pppw",
   "£35pppw broadband" etc. count as bills. A whole-property weekly price under £50pp for 3+ beds is per person.
-  `raw["price"]` keeps the structured price so `python -m app.cli reprice` can re-run the parser after a fix.
+  When per-person figures disagree, the one matching the whole-house price / beds wins (old adverts left in
+  descriptions). `raw["price"]` keeps the structured price so `python -m app.cli reprice` can re-run the parser after a fix.
   Status/favourite propagate. Duplicates show as "Also on".
 
 ## 7. Bills estimate (`app/bills.py`, all numbers editable in Settings → Bill assumptions)

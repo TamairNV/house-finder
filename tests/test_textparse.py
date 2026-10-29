@@ -151,3 +151,12 @@ def test_weekly_price_for_a_shared_house_is_per_person():
     r = tp.guess_rent("Lovely 4 bed. £150 per week", 4)
     assert r.pppw == 150 and r.source == "text-room"
     assert tp.guess_rent("5 bed £500 pw", 5).pppw == 100
+
+
+def test_old_advert_left_in_description_loses_to_portal_price():
+    # Live: Rightmove/Hive Helmsley Road, card "£2,492 pcm £575 pw", description holds a 2018 copy at £75.
+    desc = ("Available June 2027 | £115 per person per week | Hive presents this 5 bedroom house. "
+            "Available September 2018 | £75 per person per week | Hive presents this 5 bedroom house.")
+    assert tp.guess_rent(desc, 5, 5, 2492, "pcm").pppw == 115
+    assert tp.guess_rent("£2,492 pcm £575 pw " + desc, 5, 5).pppw == 115  # no structured price stored
+    assert tp.guess_rent("Rooms from £95 pppw, £110 pppw for the big room", 4).pppw == 95

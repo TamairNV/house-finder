@@ -164,6 +164,14 @@ class RentGuess:
     source: str  # which rule produced it, for debugging
 
 
+def _whole_weekly(mentions: list, amount: float | None, period: str | None, per_person: bool) -> float | None:
+    """Whole-property weekly rent from the structured price, else the biggest whole-property figure in the text."""
+    if amount and not per_person:
+        return amount if period == "pw" else amount / 52 if period == "pa" else amount / WEEKS_PER_MONTH
+    whole = [p.weekly for p in mentions if not p.per_person and not p.is_bills_cost and p.weekly > 50]
+    return max(whole) if whole else None
+
+
 MIN_WHOLE_PPPW = 50  # below this a "whole property" price must really be per room
 
 
@@ -191,6 +199,16 @@ def guess_rent(text: str, bedrooms: int | None, people: int | None = None,
         inc = [p for p in pp if p.incl_bills is True]
         if base:
             chosen = min(base, key=lambda p: p.weekly)  # "from £X pppw" -> lowest
+            # ...unless the per-person figures disagree with the whole-house price: agents leave old adverts in
+            # the description ("Available September 2018 | £75 per person per week"), so when one of them
+            # matches the portal's "£575 pw" / 5 beds, trust that one.
+            ref = _whole_weekly(mentions, structured_amount, structured_period, structured_per_person)
+            beds = bedrooms or divisor
+            if ref and beds and len({round(p.weekly) for p in base}) > 1:
+                implied = ref / beds
+                fits = [p for p in base if abs(p.weekly - implied) / implied <= 0.15]
+                if fits:
+                    chosen = min(fits, key=lambda p: abs(p.weekly - implied))
             pppw = round(chosen.weekly, 2)
             if inc and bills_pkg is None:
                 diff = round(min(inc, key=lambda p: p.weekly).weekly - pppw, 2)
