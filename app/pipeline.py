@@ -28,7 +28,7 @@ from .scoring import evaluate
 from .scrapers.base import BlockedError, RawListing
 from .scrapers.registry import SCRAPERS, get_scraper
 from .store import load_profile
-from .textparse import (WEEKS_PER_MONTH, academic_year_hint, detect_bills_included, guess_rent, is_student_let,
+from .textparse import (MIN_PP_RENT_PPPW, WEEKS_PER_MONTH, academic_year_hint, detect_bills_included, guess_rent, is_student_let,
                         parse_available, parse_bathrooms, parse_bedrooms, parse_furnished, parse_postcode)
 
 log = logging.getLogger(__name__)
@@ -82,8 +82,35 @@ def normalise(raw: RawListing, profile: Profile, today: date | None = None) -> d
         agent_name=raw.agent_name, agent_phone=raw.agent_phone,
         photos=[p for p in raw.photos if p][:40], floorplans=[p for p in raw.floorplans if p][:5],
         listed_at=raw.listed_at,
-        raw={**(raw.raw or {}), "card_text": raw.card_text[:4000]},
+        raw={**(raw.raw or {}), "card_text": raw.card_text[:4000],
+             "price": [raw.price_amount, raw.price_period, raw.price_per_person]},
     )
+
+
+def reprice(listing: Listing, profile: Profile) -> bool:
+    """Re-run the rent parser on what's stored (after a parser fix). True if the rent changed.
+
+    Rows saved before the structured price was kept in ``raw`` and that now parse to nothing keep their rent,
+    unless it's implausibly low (a bills figure taken as rent): that's cleared and the next scrape refills it.
+    """
+    stored = listing.raw or {}
+    amount, period, per_person = stored.get("price") or (None, None, False)
+    text = " \n ".join(filter(None, [listing.title, listing.address, stored.get("card_text"),
+                                     " . ".join(listing.key_features or []), listing.description]))
+    beds = listing.bedrooms
+    rent = guess_rent(text, beds, profile.group_size if beds in profile.allowed_bedrooms else beds,
+                      amount, period, bool(per_person))
+    before = (listing.rent_pppw, listing.bills_pppw_stated)
+    if rent.pppw:
+        listing.rent_pppw, listing.rent_total_pcm, listing.price_source = rent.pppw, rent.total_pcm, rent.source
+        listing.bills_pppw_stated = rent.bills_pppw
+    elif listing.rent_pppw and listing.rent_pppw < MIN_PP_RENT_PPPW:
+        listing.rent_pppw = listing.rent_total_pcm = None
+        listing.price_source = "none"
+    if listing.price_history and before[0] != listing.rent_pppw:
+        # a parser fix isn't a price change: rewrite history instead of logging a rise/drop
+        listing.price_history = [{**h, "pppw": listing.rent_pppw} for h in listing.price_history][-1:]
+    return before != (listing.rent_pppw, listing.bills_pppw_stated)
 
 
 def _area_from_address(addr: str | None) -> str | None:
@@ -124,7 +151,9 @@ def upsert(session: Session, raw: RawListing, profile: Profile) -> tuple[Listing
             if k == "raw":
                 v = {**(listing.raw or {}), **v}
             setattr(listing, k, v)
-        if old_pppw and listing.rent_pppw and abs(listing.rent_pppw - old_pppw) >= 1:
+        if old_pppw and old_pppw < MIN_PP_RENT_PPPW and (listing.rent_pppw or 0) >= MIN_PP_RENT_PPPW:
+            listing.price_history = []  # the old figure was a parser mistake, not a real price
+        elif old_pppw and listing.rent_pppw and abs(listing.rent_pppw - old_pppw) >= 1:
             kind = "price_drop" if listing.rent_pppw < old_pppw else "price_rise"
             session.add(Event(listing_id=listing.id, kind=kind, data={"from": old_pppw, "to": listing.rent_pppw}))
         if listing.site_status == "removed":
@@ -220,46 +249,114 @@ def rescore_all(session: Session, profile: Profile | None = None) -> int:
 
 # ------------------------------------------------------------------ dedupe
 
-def _street_key(addr: str | None) -> str | None:
+_STREET_ABBR = {"rd": "road", "st": "street", "ave": "avenue", "av": "avenue", "terr": "terrace", "ter": "terrace",
+                "tce": "terrace", "gdns": "gardens", "gdn": "gardens", "pl": "place", "cres": "crescent", "gr": "grove",
+                "gro": "grove", "dr": "drive", "ln": "lane", "ct": "court", "sq": "square", "cl": "close", "pk": "park",
+                "w": "west", "e": "east", "n": "north", "s": "south"}
+_STREET_WORD = re.compile(r"\b(road|street|avenue|terrace|gardens|place|crescent|grove|drive|lane|court|square|close|"
+                          r"park|way|walk|row|view|mews|villas|parade|vale|hill|green|bank|rise|chare)\b")
+
+
+def _street_parts(addr: str | None) -> tuple[str | None, str | None]:
+    """("holly avenue", "14") from "Flat 2, 14 Holly Ave, Jesmond, NE2". Number is None when not given."""
     if not addr:
+        return None, None
+    parts = [p.strip().lower() for p in addr.split(",") if p.strip()]
+    parts = [re.sub(r"\b(flat|apartment|apt|room|unit)\s+\w+\b", "", p).strip() for p in parts]
+    parts = [" ".join(_STREET_ABBR.get(w, w) for w in re.sub(r"[.']", "", p).split()) for p in parts]
+    part = next((p for p in parts if _STREET_WORD.search(p)), next((p for p in parts if p), ""))
+    m = re.match(r"^(\d+[a-z]?)(?:\s*-\s*\d+[a-z]?)?\s+", part)
+    number = m.group(1) if m else None
+    street = re.sub(r"[^a-z]", "", part[m.end():] if m else part)
+    return street or None, number
+
+
+def _street_key(addr: str | None) -> str | None:
+    return _street_parts(addr)[0]
+
+
+def _shingles(l: Listing) -> set[str]:
+    words = re.findall(r"[a-z0-9]+", f"{l.description or ''} {' '.join(l.key_features or [])}".lower())
+    return {" ".join(words[i:i + 5]) for i in range(len(words) - 4)} if len(words) >= 30 else set()
+
+
+def _similar_text(a: set[str], b: set[str]) -> float:
+    return len(a & b) / min(len(a), len(b)) if a and b else 0.0
+
+
+def _close(x: float | None, y: float | None, tol: float) -> bool | None:
+    if not x or not y:
         return None
-    first_part = addr.split(",")[0].lower()
-    first_part = re.sub(r"^\d+[a-z]?\s+", "", first_part)
-    first_part = re.sub(r"\b(flat|apartment)\s+\w+\b", "", first_part)
-    return re.sub(r"[^a-z]", "", first_part) or None
+    return abs(x - y) / max(x, y) <= tol
+
+
+def _same_house(a: Listing, b: Listing, sa: tuple, sb: tuple, text_sim: float) -> bool:
+    (street_a, num_a), (street_b, num_b) = sa, sb
+    if a.outcode and b.outcode and a.outcode != b.outcode:
+        return False
+    same_street = bool(street_a and street_a == street_b)
+    if same_street and num_a and num_b and num_a != num_b:
+        return False  # 14 vs 16 Holly Avenue: neighbours, not the same house
+    near = (a.geo_precision == "exact" and b.geo_precision == "exact" and a.lat and b.lat
+            and geo.haversine_km(a.lat, a.lng, b.lat, b.lng) < 0.08)
+    same_number = same_street and num_a and num_a == num_b
+    if not (same_street or near or text_sim >= 0.5):
+        return False
+    if a.bedrooms is None or b.bedrooms is None:
+        return bool(same_number or text_sim >= 0.6)
+    beds_gap = abs(a.bedrooms - b.bedrooms)
+    if beds_gap > 1 or (beds_gap == 1 and not (same_number or text_sim >= 0.5)):
+        return False
+    if same_number or text_sim >= 0.7:
+        return True  # same house number or copy-pasted description: prices often differ by bills handling
+    # Same street/spot but nothing more specific: rent must agree (base rent, or rent incl. bills).
+    rent, total = _close(a.rent_pppw, b.rent_pppw, 0.1), _close(a.total_pppw, b.total_pppw, 0.1)
+    return rent is not False or total is True
 
 
 def dedupe(session: Session) -> int:
     """Mark the same house listed on several sites (or twice on one) as duplicates.
 
-    Match = same bedrooms and (same street name, or exact coords within 60 m) and
-    per-person rent within 8%. The canonical copy is the one with the most photos.
+    Same house = no conflicting postcode district, and same street (house numbers must not differ), exact
+    coords within 80 m, or a largely identical description. Then bedrooms within one (equal unless the house
+    number or description matches too) and rent within 10%, which a matching house number or near-identical
+    description overrides. Matches are transitive. The canonical copy is the one with the most photos.
     """
     rows = list(session.scalars(select(Listing).where(Listing.site_status != "removed")))
-    groups: list[list[Listing]] = []
-    for l in rows:
-        placed = False
-        for g in groups:
-            o = g[0]
-            if l.bedrooms != o.bedrooms or l.bedrooms is None:
-                continue
-            same_place = False
-            sk1, sk2 = _street_key(l.address), _street_key(o.address)
-            if sk1 and sk1 == sk2 and (l.outcode == o.outcode or not l.outcode or not o.outcode):
-                same_place = True
-            elif l.geo_precision == "exact" and o.geo_precision == "exact" and l.lat and o.lat:
-                same_place = geo.haversine_km(l.lat, l.lng, o.lat, o.lng) < 0.06
-            if not same_place:
-                continue
-            if l.rent_pppw and o.rent_pppw and abs(l.rent_pppw - o.rent_pppw) / o.rent_pppw > 0.08:
-                continue
-            g.append(l)
-            placed = True
-            break
-        if not placed:
-            groups.append([l])
+    streets = [_street_parts(l.address) for l in rows]
+    texts = [_shingles(l) for l in rows]
+    # Candidate pairs: same street, nearby coords, or shared description phrases. Phrases found in more than
+    # three listings are agent boilerplate ("Hive Estates are pleased to...") and say nothing about the house.
+    by_key: dict[tuple, list[int]] = {}
+    for i, l in enumerate(rows):
+        if streets[i][0]:
+            by_key.setdefault(("st", streets[i][0]), []).append(i)
+        if l.lat and l.lng and l.geo_precision == "exact":
+            by_key.setdefault(("geo", round(l.lat, 3), round(l.lng, 3)), []).append(i)
+        for sh in texts[i]:
+            by_key.setdefault(("tx", sh), []).append(i)
+    boiler = {k[1] for k, ids in by_key.items() if k[0] == "tx" and len(ids) > 3}
+    texts = [t - boiler for t in texts]
+    pairs = {(i, j) for k, ids in by_key.items() if not (k[0] == "tx" and len(ids) > 3)
+             for x, i in enumerate(ids) for j in ids[x + 1:]}
+    parent = list(range(len(rows)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, j in pairs:
+        a, b = rows[i], rows[j]
+        if not (a.source == b.source and a.source_id == b.source_id) and \
+                _same_house(a, b, streets[i], streets[j], _similar_text(texts[i], texts[j])):
+            parent[find(i)] = find(j)
+    groups: dict[int, list[Listing]] = {}
+    for i, l in enumerate(rows):
+        groups.setdefault(find(i), []).append(l)
     changed = 0
-    for g in groups:
+    for g in groups.values():
         g.sort(key=lambda x: (-(len(x.photos or [])), x.first_seen))
         canon = g[0]
         if canon.duplicate_of_id is not None:

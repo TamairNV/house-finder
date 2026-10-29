@@ -264,3 +264,42 @@ def test_ors_pauses_on_quota_exceeded(monkeypatch):
     assert geo.ors_minutes((54.98, -1.61), [(54.97, -1.62)], "walk") is None
     assert geo.ors_minutes((54.98, -1.61), [(54.97, -1.62)], "walk") is None
     assert len(calls) == 1
+
+
+def test_dedupe_matches_abbreviated_streets_and_copied_text(session):
+    p = profile()
+    desc = ("A fantastic four bedroom student house on a quiet street close to the Metro, with two bathrooms, a big "
+            "modern kitchen, a garden and a lounge. Available July 2027. Contact us to book a viewing now.")
+    a, _ = upsert(session, raw(address="Flat 1, 14 Holly Ave, Jesmond, NE2", description=desc + " £150 PPPW"), p)
+    # same house, other site: different bedroom count and bills handling, no coords
+    b, _ = upsert(session, raw(source="afs", source_id="9", url="https://afs/9", address="Holly Avenue, Jesmond",
+                               bedrooms=5, lat=None, lng=None, description=desc + " £175 PPPW inc bills"), p)
+    # neighbour: same street, same price, different house number
+    c, _ = upsert(session, raw(source="openrent", source_id="7", url="https://o/7", address="16 Holly Avenue, NE2",
+                               description="Four bed house £150 PPPW"), p)
+    dedupe(session)
+    assert {a.duplicate_of_id, b.duplicate_of_id} - {None} in ({a.id}, {b.id})
+    assert c.duplicate_of_id is None
+
+
+def test_dedupe_ignores_agent_boilerplate(session):
+    p = profile()
+    blurb = ("Hive Estates are pleased to offer this property to let. Please contact our office to arrange a viewing "
+             "and ask about our other properties in Jesmond, Heaton and Sandyford, we look forward to hearing from you.")
+    rows = [upsert(session, raw(source="hive", source_id=str(i), url=f"https://h/{i}", address=f"{s}, Newcastle",
+                                lat=None, lng=None, description=blurb + " £150 PPPW"), p)[0]
+            for i, s in enumerate(["Holly Avenue", "Simonside Terrace", "Warwick Street", "Cardigan Terrace"])]
+    dedupe(session)
+    assert all(r.duplicate_of_id is None for r in rows)
+
+
+def test_reprice_fixes_bills_taken_as_rent(session):
+    p = profile()
+    l, _ = upsert(session, raw(description="Bills: £35pppw. Great house."), p)
+    assert l.rent_pppw == 150 and l.bills_pppw_stated == 35
+    l.rent_pppw, l.bills_pppw_stated = 35, None  # what the old parser stored
+    l.raw = {k: v for k, v in l.raw.items() if k != "price"}  # saved before structured prices were kept
+    from app.pipeline import reprice
+    assert reprice(l, p) and l.rent_pppw is None  # cleared: next scrape refills it
+    l.raw = {**l.raw, "price": [2600, "pcm", False]}
+    assert reprice(l, p) and l.rent_pppw == 150 and l.bills_pppw_stated == 35

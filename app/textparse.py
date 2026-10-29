@@ -85,6 +85,13 @@ BILLS_EXC_RE = re.compile(
     re.IGNORECASE,
 )
 _BILLS_COST_CTX = re.compile(r"bills?\s+package|utilit(?:y|ies)\s+package|bills?\s+(?:cost|charge|fee)|for\s+bills|bills\s+(?:at|of|are|is)\s*$|^\s*bills", re.IGNORECASE)
+# "Bills: £35pppw", "Utilities £30pw", "all bills for just £35 pppw": a bills word shortly before, no other £ between.
+_BILLS_BEFORE = re.compile(r"\b(?:bills?|utilit(?:y|ies)|broadband|wi-?fi|internet|energy|gas\s+and\s+electric\w*)\b[^£.;]{0,25}$",
+                           re.IGNORECASE)
+# "£35pppw for bills", "£35 pppw broadband and energy", "£24pw bills package" (but not "£120pppw bills extra").
+_BILLS_AFTER = re.compile(r"\s*(?:(?:for|towards|on|covers?)\s+(?:all\s+|the\s+|your\s+)?)?(?:bills|utilit|broadband|wi-?fi|energy)"
+                          r"|\s*(?:\w+\s+){0,2}bills?\s+package", re.IGNORECASE)
+MIN_PP_RENT_PPPW = 55  # no student room in Newcastle rents for less; lower per-person figures are bills or fees
 _DEPOSIT_CTX = re.compile(r"deposit|holding|admin|fee|reservation|referenc", re.IGNORECASE)
 _EQUIV_ROOM = re.compile(r"(equivalent\s+to|per\s+room)", re.IGNORECASE)
 
@@ -131,9 +138,9 @@ def extract_prices(text: str) -> list[PriceMention]:
             incl = False
         # "£139pppw (£166pppw inc bills)": the inc-bills phrase is *after* the 2nd
         # price; for the first price it is beyond the next "£" so not in after_short.
-        after_says_bills = bool(re.match(r"\s*(?:for\s+)?(?:bills|utilit)", after, re.I)
-                                or re.match(r"\s*\w*\s*bills?\s+package", after, re.I))
-        is_bills_cost = bool(_BILLS_COST_CTX.search(before[-25:]) or (after_says_bills and incl is not True))
+        # (the unit can swallow a full stop, "£120pppw. Utilities £35pppw": then the bills word is a new sentence)
+        after_says_bills = bool(_BILLS_AFTER.match(after)) and incl is None and not m.group(0).endswith(".")
+        is_bills_cost = bool(_BILLS_COST_CTX.search(before[-25:]) or _BILLS_BEFORE.search(before) or after_says_bills)
         is_deposit = bool(_DEPOSIT_CTX.search(before[-20:]))
         # SpareRoom "(Equivalent to £366 per room)" — a per-person figure even
         # though the unit is missing; handled by caller if needed.
@@ -178,7 +185,7 @@ def guess_rent(text: str, bedrooms: int | None, people: int | None = None,
             break
     divisor = people or bedrooms
 
-    pp = [p for p in mentions if p.per_person and not p.is_bills_cost and 30 <= p.weekly <= 600]
+    pp = [p for p in mentions if p.per_person and not p.is_bills_cost and MIN_PP_RENT_PPPW <= p.weekly <= 600]
     if pp:
         base = [p for p in pp if p.incl_bills is not True]
         inc = [p for p in pp if p.incl_bills is True]
@@ -221,6 +228,11 @@ def guess_rent(text: str, bedrooms: int | None, people: int | None = None,
     whole = [p for p in mentions if not p.per_person and not p.is_bills_cost and p.weekly > 50]
     if whole:
         chosen = max(whole, key=lambda p: p.weekly)
+        if divisor and divisor >= 3 and chosen.weekly / divisor < MIN_WHOLE_PPPW and chosen.weekly >= MIN_PP_RENT_PPPW:
+            # "£150 per week" for a 4 bed is the per-person rent, not £37.50 each
+            pppw = round(chosen.weekly, 2)
+            return RentGuess(pppw, round(pppw * WEEKS_PER_MONTH * divisor, 2),
+                             bills_inc if chosen.incl_bills is None else chosen.incl_bills, bills_pkg, "text-room")
         total = round(chosen.weekly * WEEKS_PER_MONTH, 2)
         pppw = round(chosen.weekly / divisor, 2) if divisor else None
         return RentGuess(pppw, total, bills_inc if chosen.incl_bills is None else chosen.incl_bills,

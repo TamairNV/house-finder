@@ -201,7 +201,14 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
 - Sanity: a "whole property" structured price under £50 pppw for 3+ people is treated as a room rent
   (`price_source = structured-room`), e.g. Rightmove "5 bedroom house share" at £450 pcm.
 - Bathrooms: structured value; 0 = unknown; else text ("2 bathrooms", "4 en-suites").
-- Dedupe: same bedrooms + (same street key & outcode, or exact coords within 60 m) + pppw within 8%. Canonical = most photos.
+- Dedupe (2026-10-29 rewrite, union-find over candidate pairs): no conflicting outcode, and (same street after
+  expanding Rd/Ave/Tce... with no conflicting house number, or exact coords within 80 m, or ≥50% shared 5-word
+  description phrases, ignoring phrases in >3 listings = agent boilerplate). Then bedrooms within 1 (equal unless the
+  house number or text matches) and rent or rent+bills within 10%, skipped when the house number matches or text ≥70%.
+  Canonical = most photos.
+- Rent sanity (2026-10-29): per-person figures under £55pw are bills/fees, never rent; "Bills: £35pppw",
+  "£35pppw broadband" etc. count as bills. A whole-property weekly price under £50pp for 3+ beds is per person.
+  `raw["price"]` keeps the structured price so `python -m app.cli reprice` can re-run the parser after a fix.
   Status/favourite propagate. Duplicates show as "Also on".
 
 ## 7. Bills estimate (`app/bills.py`, all numbers editable in Settings → Bill assumptions)

@@ -135,3 +135,19 @@ def test_guess_rent_implausibly_cheap_whole_price_is_per_room():
     # A cheap but real whole house (£1,200 pcm for 5 = ~£55 pppw) is left alone.
     g = tp.guess_rent("5 bed terraced house", bedrooms=5, people=5, structured_amount=1200, structured_period="pcm")
     assert g.source == "structured" and g.total_pcm == 1200
+
+
+def test_bills_figures_are_not_taken_as_rent():
+    # Seen live as "£35pppw" listings: the bills figure won over the real rent.
+    for text in ("4 bed house. Bills: £35pppw.", "All bills for just £35 pppw", "£35 pppw broadband and energy"):
+        r = tp.guess_rent(text, 4, structured_amount=2600, structured_period="pcm")
+        assert r.pppw == 150 and r.bills_pppw == 35, text
+    r = tp.guess_rent("Rent £120pppw. Utilities £35pppw", 4)
+    assert r.pppw == 120 and r.bills_pppw == 35
+    assert tp.guess_rent("£120pppw bills extra", 4).pppw == 120
+
+
+def test_weekly_price_for_a_shared_house_is_per_person():
+    r = tp.guess_rent("Lovely 4 bed. £150 per week", 4)
+    assert r.pppw == 150 and r.source == "text-room"
+    assert tp.guess_rent("5 bed £500 pw", 5).pppw == 100

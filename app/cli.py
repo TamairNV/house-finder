@@ -5,6 +5,7 @@
     python -m app.cli parse rightmove detail path/to/page.html
     python -m app.cli probe rightmove                               # fetch page 1 + one detail, print what parsed
     python -m app.cli rescore
+    python -m app.cli reprice                                         # re-run the rent parser on stored listings
     python -m app.cli digest --to you@example.com [--send]           # preview (or send) a digest
     python -m app.cli export-listings out.json                       # scraped fields only, for debugging parsers
     python -m app.cli demo                                           # load fake listings to try the UI
@@ -87,6 +88,17 @@ def cmd_rescore(a) -> None:
     from .pipeline import rescore_all
     with session_scope() as s:
         print(f"re-scored {rescore_all(s)} listings")
+
+
+def cmd_reprice(a) -> None:
+    """Re-run the rent parser on stored listings (after a parser fix), then re-score and re-dedupe."""
+    from .pipeline import reprice, rescore_all
+    with session_scope() as s:
+        profile = load_profile(s)
+        changed = [l for l in s.scalars(select(Listing)) if reprice(l, profile)]
+        for l in changed[:30]:
+            print(f"{l.id} {l.source} {l.address}: now {l.rent_pppw} pppw ({l.price_source})")
+        print(f"re-priced {len(changed)} listings; re-scored {rescore_all(s, profile)}")
 
 
 def cmd_prune_stubs(a) -> None:
@@ -194,6 +206,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("file"); p.add_argument("--limit", type=int, default=5); p.set_defaults(fn=cmd_parse)
     p = sub.add_parser("probe"); p.add_argument("source", choices=list(SCRAPERS)); p.set_defaults(fn=cmd_probe)
     p = sub.add_parser("rescore"); p.set_defaults(fn=cmd_rescore)
+    p = sub.add_parser("reprice"); p.set_defaults(fn=cmd_reprice)
     p = sub.add_parser("prune-stubs"); p.add_argument("--yes", action="store_true"); p.set_defaults(fn=cmd_prune_stubs)
     p = sub.add_parser("digest"); p.add_argument("--to", required=True); p.add_argument("--send", action="store_true"); p.set_defaults(fn=cmd_digest)
     p = sub.add_parser("export-listings"); p.add_argument("file"); p.set_defaults(fn=cmd_export_listings)
