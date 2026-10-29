@@ -201,11 +201,13 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
 - Sanity: a "whole property" structured price under £50 pppw for 3+ people is treated as a room rent
   (`price_source = structured-room`), e.g. Rightmove "5 bedroom house share" at £450 pcm.
 - Bathrooms: structured value; 0 = unknown; else text ("2 bathrooms", "4 en-suites").
-- Dedupe (2026-10-29 rewrite, union-find over candidate pairs): no conflicting outcode, and (same street after
-  expanding Rd/Ave/Tce... with no conflicting house number, or exact coords within 80 m, or ≥50% shared 5-word
-  description phrases, ignoring phrases in >3 listings = agent boilerplate). Then bedrooms within 1 (equal unless the
-  house number or text matches) and rent or rent+bills within 10%, skipped when the house number matches or text ≥70%.
+- Dedupe (2026-10-29 rewrite): candidate pairs by street / pin / shared description phrases (phrases in >3 listings
+  = agent boilerplate, ignored). Same house needs no conflicting outcode, street name (unless description ≥70% copied)
+  or house number; plus same street, exact pins within 80 m, or ≥50% shared text. Same site needs the house number or
+  copied text (blocks list many similar units). Bedrooms equal (±1 with shared text); rent or rent+bills within 10%
+  (30% if copied). Complete linkage, no chaining: union-find snowballed neighbouring 5 beds into 18-listing groups.
   Canonical = most photos.
+- Scoring splits whole-property rent by group size only when bedrooms ≥ group size; a 2 bed is split two ways.
 - Rent sanity (2026-10-29): per-person figures under £55pw are bills/fees, never rent; "Bills: £35pppw",
   "£35pppw broadband" etc. count as bills. A whole-property weekly price under £50pp for 3+ beds is per person.
   `raw["price"]` keeps the structured price so `python -m app.cli reprice` can re-run the parser after a fix.

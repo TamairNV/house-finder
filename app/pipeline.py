@@ -201,10 +201,12 @@ def enrich_and_score(session: Session, listing: Listing, profile: Profile, use_r
             extra = listing.bills_pppw_stated
         else:
             extra = listing.bills_pppw_estimate
-        # Whole-house rent split across the group even if there's a spare room
+        # Whole-house rent split across the group even if there's a spare room (but a 2 bed flat is split
+        # two ways, not five: it's filtered out on size anyway, and £30pppw on the card just confuses)
         rent_pp = listing.rent_pppw
         if listing.rent_total_pcm and listing.price_source in ("structured", "text-whole"):
-            rent_pp = listing.rent_total_pcm / WEEKS_PER_MONTH / people
+            split = people if not listing.bedrooms or listing.bedrooms >= people else listing.bedrooms
+            rent_pp = listing.rent_total_pcm / WEEKS_PER_MONTH / split
             listing.rent_pppw = round(rent_pp, 2)
         listing.total_pppw = round(rent_pp + extra, 2)
     else:
@@ -294,39 +296,44 @@ def _same_house(a: Listing, b: Listing, sa: tuple, sb: tuple, text_sim: float) -
     (street_a, num_a), (street_b, num_b) = sa, sb
     if a.outcode and b.outcode and a.outcode != b.outcode:
         return False
-    same_street = bool(street_a and street_a == street_b)
-    if same_street and num_a and num_b and num_a != num_b:
-        return False  # 14 vs 16 Holly Avenue: neighbours, not the same house
+    copied = text_sim >= 0.7  # near-identical description: the same agent's listing syndicated to another site
+    if street_a and street_b and street_a != street_b and not copied:
+        return False  # Helmsley Road vs Doncaster Road: neighbours, however close the pins are
+    if street_a and street_a == street_b and num_a and num_b and num_a != num_b:
+        return False  # 14 vs 16 Holly Avenue
     near = (a.geo_precision == "exact" and b.geo_precision == "exact" and a.lat and b.lat
             and geo.haversine_km(a.lat, a.lng, b.lat, b.lng) < 0.08)
-    same_number = same_street and num_a and num_a == num_b
+    same_street = bool(street_a and street_a == street_b)
     if not (same_street or near or text_sim >= 0.5):
         return False
+    if a.source == b.source and not (copied or (same_street and num_a and num_a == num_b)):
+        return False  # one site listing several similar units in a block / on a street: different units
     if a.bedrooms is None or b.bedrooms is None:
-        return bool(same_number or text_sim >= 0.6)
-    beds_gap = abs(a.bedrooms - b.bedrooms)
-    if beds_gap > 1 or (beds_gap == 1 and not (same_number or text_sim >= 0.5)):
+        if not (text_sim >= 0.5 or (same_street and num_a and num_a == num_b)):
+            return False
+    elif a.bedrooms != b.bedrooms and not (text_sim >= 0.5 and abs(a.bedrooms - b.bedrooms) == 1):
         return False
-    if same_number or text_sim >= 0.7:
-        return True  # same house number or copy-pasted description: prices often differ by bills handling
-    # Same street/spot but nothing more specific: rent must agree (base rent, or rent incl. bills).
-    rent, total = _close(a.rent_pppw, b.rent_pppw, 0.1), _close(a.total_pppw, b.total_pppw, 0.1)
+    # Rent must agree (base rent, or rent incl. bills): within 10%, or 30% for a copied description, where the
+    # difference is usually just how each site shows bills.
+    tol = 0.3 if copied else 0.1
+    rent, total = _close(a.rent_pppw, b.rent_pppw, tol), _close(a.total_pppw, b.total_pppw, tol)
     return rent is not False or total is True
 
 
 def dedupe(session: Session) -> int:
     """Mark the same house listed on several sites (or twice on one) as duplicates.
 
-    Same house = no conflicting postcode district, and same street (house numbers must not differ), exact
-    coords within 80 m, or a largely identical description. Then bedrooms within one (equal unless the house
-    number or description matches too) and rent within 10%, which a matching house number or near-identical
-    description overrides. Matches are transitive. The canonical copy is the one with the most photos.
+    Same house = no conflicting postcode district or street name (unless the description is copied), no
+    conflicting house number, and some positive evidence: same street, exact pins within 80 m, or a largely
+    shared description (phrases in >3 listings are agent boilerplate and ignored). Same site needs the house
+    number or copied text. Bedrooms equal (one off allowed with shared text) and rent within 10% (30% for copied
+    text). No chaining: a listing joins a group only if it matches every member, so a row of similar houses on
+    neighbouring streets can't snowball into one group. The canonical copy is the one with the most photos.
     """
     rows = list(session.scalars(select(Listing).where(Listing.site_status != "removed")))
     streets = [_street_parts(l.address) for l in rows]
     texts = [_shingles(l) for l in rows]
-    # Candidate pairs: same street, nearby coords, or shared description phrases. Phrases found in more than
-    # three listings are agent boilerplate ("Hive Estates are pleased to...") and say nothing about the house.
+    # Candidate pairs: same street, nearby coords, or shared description phrases.
     by_key: dict[tuple, list[int]] = {}
     for i, l in enumerate(rows):
         if streets[i][0]:
@@ -339,22 +346,24 @@ def dedupe(session: Session) -> int:
     texts = [t - boiler for t in texts]
     pairs = {(i, j) for k, ids in by_key.items() if not (k[0] == "tx" and len(ids) > 3)
              for x, i in enumerate(ids) for j in ids[x + 1:]}
-    parent = list(range(len(rows)))
+    sims = {(i, j): _similar_text(texts[i], texts[j]) for i, j in pairs}
+    matches = {(i, j) for (i, j) in pairs if not (rows[i].source == rows[j].source and rows[i].source_id == rows[j].source_id)
+               and _same_house(rows[i], rows[j], streets[i], streets[j], sims[(i, j)])}
+    # Complete linkage, strongest matches first (copied text, then same house number, then the rest).
+    def strength(p):
+        i, j = p
+        return (-sims[p], -(bool(streets[i][1]) and streets[i][1] == streets[j][1]), i, j)
 
-    def find(i: int) -> int:
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    for i, j in pairs:
-        a, b = rows[i], rows[j]
-        if not (a.source == b.source and a.source_id == b.source_id) and \
-                _same_house(a, b, streets[i], streets[j], _similar_text(texts[i], texts[j])):
-            parent[find(i)] = find(j)
-    groups: dict[int, list[Listing]] = {}
-    for i, l in enumerate(rows):
-        groups.setdefault(find(i), []).append(l)
+    group_of = {i: {i} for i in range(len(rows))}
+    for i, j in sorted(matches, key=strength):
+        gi, gj = group_of[i], group_of[j]
+        if gi is gj:
+            continue
+        if all((min(x, y), max(x, y)) in matches for x in gi for y in gj):
+            gi |= gj
+            for y in gj:
+                group_of[y] = gi
+    groups = {id(g): [rows[i] for i in g] for g in group_of.values()}
     changed = 0
     for g in groups.values():
         g.sort(key=lambda x: (-(len(x.photos or [])), x.first_seen))

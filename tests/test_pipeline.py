@@ -303,3 +303,32 @@ def test_reprice_fixes_bills_taken_as_rent(session):
     assert reprice(l, p) and l.rent_pppw is None  # cleared: next scrape refills it
     l.raw = {**l.raw, "price": [2600, "pcm", False]}
     assert reprice(l, p) and l.rent_pppw == 150 and l.bills_pppw_stated == 35
+
+
+def test_dedupe_does_not_chain_neighbouring_streets(session):
+    # Seen live: near-identical 5 beds on Helmsley Road / Doncaster Road snowballed into one 18-listing group.
+    p = profile()
+    a, _ = upsert(session, raw(address="Helmsley Road, Sandyford NE2", lat=54.9850, lng=-1.6000), p)
+    b, _ = upsert(session, raw(source="afs", source_id="2", url="u2", address="Doncaster Road, Sandyford NE2",
+                               lat=54.9853, lng=-1.6002), p)
+    c, _ = upsert(session, raw(source="unihomes", source_id="3", url="u3", address="Sandyford, Newcastle NE2",
+                               lat=54.9851, lng=-1.6001), p)
+    dedupe(session)
+    assert a.duplicate_of_id is None and b.duplicate_of_id is None  # different streets never merge
+    assert c.duplicate_of_id in (a.id, b.id) or c.duplicate_of_id is None
+    assert len({x.duplicate_of_id or x.id for x in (a, b, c)}) >= 2
+
+
+def test_dedupe_keeps_units_in_one_block_apart(session):
+    p = profile()
+    a, _ = upsert(session, raw(source="spareroom", source_id="1", url="u1", address="50-54 Union Street, NE2"), p)
+    b, _ = upsert(session, raw(source="spareroom", source_id="2", url="u2", address="Union Street, NE2"), p)
+    dedupe(session)
+    assert a.duplicate_of_id is None and b.duplicate_of_id is None
+
+
+def test_small_flat_rent_split_by_bedrooms_not_group(session):
+    p = profile(group_size=5)
+    l, _ = upsert(session, raw(bedrooms=2, price_amount=1300, description="Two bed flat"), p)
+    enrich_and_score(session, l, p)
+    assert l.rent_pppw == 150
