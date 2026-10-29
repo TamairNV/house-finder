@@ -206,7 +206,8 @@ per run. Personal, non-commercial use. Respect robots.txt paths below. If a site
   or house number; plus same street, exact pins within 80 m, or ≥50% shared text. Same site needs the house number or
   copied text (blocks list many similar units). Bedrooms equal (±1 with shared text); rent or rent+bills within 10%
   (30% if copied). Complete linkage, no chaining: union-find snowballed neighbouring 5 beds into 18-listing groups.
-  Canonical = most photos.
+  Different full postcodes never match; same-site rows need identical title, beds and rent (block units). Address
+  prefixes like "*360 Virtual Tour**" or "£135pppw," are stripped before reading the street. Canonical = most photos.
 - Scoring splits whole-property rent by group size only when bedrooms ≥ group size; a 2 bed is split two ways.
 - Rent sanity (2026-10-29): per-person figures under £55pw are bills/fees, never rent; "Bills: £35pppw",
   "£35pppw broadband" etc. count as bills. A whole-property weekly price under £50pp for 3+ beds is per person.

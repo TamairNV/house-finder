@@ -332,3 +332,15 @@ def test_small_flat_rent_split_by_bedrooms_not_group(session):
     l, _ = upsert(session, raw(bedrooms=2, price_amount=1300, description="Two bed flat"), p)
     enrich_and_score(session, l, p)
     assert l.rent_pppw == 150
+
+
+def test_dedupe_respects_full_postcodes_and_same_site_units(session):
+    p = profile()
+    a, _ = upsert(session, raw(address="*360 Virtual Tour** Brandon Grove, Jesmond", postcode="NE2 1PA"), p)
+    b, _ = upsert(session, raw(source="afs", source_id="2", url="u2", address="£135pppw, Dinsdale Road", postcode="NE2 1DN"), p)
+    s1, _ = upsert(session, raw(source="sturents", source_id="3", url="u3", title="Classic Studio",
+                                address="53 Leazes Terrace, NE1", lat=54.97, lng=-1.62), p)
+    s2, _ = upsert(session, raw(source="sturents", source_id="4", url="u4", title="Premium Studio",
+                                address="53 Leazes Terrace, NE1", lat=54.97, lng=-1.62), p)
+    dedupe(session)
+    assert all(x.duplicate_of_id is None for x in (a, b, s1, s2))

@@ -28,7 +28,7 @@ from .scoring import evaluate
 from .scrapers.base import BlockedError, RawListing
 from .scrapers.registry import SCRAPERS, get_scraper
 from .store import load_profile
-from .textparse import (MIN_PP_RENT_PPPW, WEEKS_PER_MONTH, academic_year_hint, detect_bills_included, guess_rent, is_student_let,
+from .textparse import (MIN_PP_RENT_PPPW, WEEKS_PER_MONTH, clean, academic_year_hint, detect_bills_included, guess_rent, is_student_let,
                         parse_available, parse_bathrooms, parse_bedrooms, parse_furnished, parse_postcode)
 
 log = logging.getLogger(__name__)
@@ -263,6 +263,7 @@ def _street_parts(addr: str | None) -> tuple[str | None, str | None]:
     """("holly avenue", "14") from "Flat 2, 14 Holly Ave, Jesmond, NE2". Number is None when not given."""
     if not addr:
         return None, None
+    addr = re.sub(r"\*[^*]*\*+|£\s?[\d,.]+\s*\w*", ",", addr)  # "*360 Virtual Tour**", "£135pppw," prefixes
     parts = [p.strip().lower() for p in addr.split(",") if p.strip()]
     parts = [re.sub(r"\b(flat|apartment|apt|room|unit)\s+\w+\b", "", p).strip() for p in parts]
     parts = [" ".join(_STREET_ABBR.get(w, w) for w in re.sub(r"[.']", "", p).split()) for p in parts]
@@ -296,6 +297,9 @@ def _same_house(a: Listing, b: Listing, sa: tuple, sb: tuple, text_sim: float) -
     (street_a, num_a), (street_b, num_b) = sa, sb
     if a.outcode and b.outcode and a.outcode != b.outcode:
         return False
+    pa, pb = (a.postcode or "").upper().replace(" ", ""), (b.postcode or "").upper().replace(" ", "")
+    if len(pa) >= 5 and len(pb) >= 5 and pa != pb:
+        return False  # full postcodes differ: NE2 1PA vs NE2 1DN
     copied = text_sim >= 0.7  # near-identical description: the same agent's listing syndicated to another site
     if street_a and street_b and street_a != street_b and not copied:
         return False  # Helmsley Road vs Doncaster Road: neighbours, however close the pins are
@@ -306,12 +310,14 @@ def _same_house(a: Listing, b: Listing, sa: tuple, sb: tuple, text_sim: float) -
     same_street = bool(street_a and street_a == street_b)
     if not (same_street or near or text_sim >= 0.5):
         return False
-    if a.source == b.source and not (copied or (same_street and num_a and num_a == num_b)):
-        return False  # one site listing several similar units in a block / on a street: different units
+    if a.source == b.source and not (clean(a.title).lower() == clean(b.title).lower() and a.bedrooms == b.bedrooms
+                                     and _close(a.rent_pppw, b.rent_pppw, 0.03) is not False
+                                     and (copied or (same_street and num_a and num_a == num_b))):
+        return False  # one site listing several units in a block (Classic Studio, Premium Ensuite...): different units
     if a.bedrooms is None or b.bedrooms is None:
         if not (text_sim >= 0.5 or (same_street and num_a and num_a == num_b)):
             return False
-    elif a.bedrooms != b.bedrooms and not (text_sim >= 0.5 and abs(a.bedrooms - b.bedrooms) == 1):
+    elif a.bedrooms != b.bedrooms and not (copied and abs(a.bedrooms - b.bedrooms) == 1 and min(a.bedrooms, b.bedrooms) >= 3):
         return False
     # Rent must agree (base rent, or rent incl. bills): within 10%, or 30% for a copied description, where the
     # difference is usually just how each site shows bills.
