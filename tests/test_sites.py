@@ -235,3 +235,19 @@ def test_network_and_logs(env, monkeypatch):
         for kind in ("ai", "scrapes", "emails", "app"):
             assert c.get(f"/api/logs/{kind}", headers=admin_headers()).status_code == 200
         assert c.get("/api/sites/house", headers=admin_headers()).json()["usage"]["requests_7d"] >= 1
+
+
+@pytest.mark.parametrize("status,loc,state", [
+    (302, "https://team.cloudflareaccess.com/login", "protected"), (403, "", "app-locked"),
+    (200, "", "open"), (530, "", "no-route")])
+def test_check_live_reads_a_real_page(monkeypatch, status, loc, state):
+    import httpx
+    seen = []
+
+    def fake_get(url, **kw):
+        seen.append(url)
+        return httpx.Response(status, headers={"location": loc} if loc else {})
+
+    monkeypatch.setattr(cloudflare.httpx, "get", fake_get)
+    res = cloudflare.check_live("zach.tamairnv.co.uk")
+    assert res["state"] == state and res["ok"] == (state == "protected") and seen == ["https://zach.tamairnv.co.uk/"]
