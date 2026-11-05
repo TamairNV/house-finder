@@ -5,7 +5,6 @@ Access: Apps and Policies: Edit; on the zone: DNS: Edit. Every step is idempoten
 """
 from __future__ import annotations
 
-import json
 import logging
 from datetime import datetime, timezone
 
@@ -173,8 +172,11 @@ def remove_access_app(app_id: str | None, policy_id: str | None) -> None:
 # ---------------------------------------------------------------- live check
 
 def check_live(hostname: str) -> dict:
-    """Is hostname answering through Cloudflare, behind an Access login?"""
-    url = f"https://{hostname}/healthz"
+    """Is hostname answering through Cloudflare, behind an Access login?
+
+    Tests a real page, not /healthz: the app leaves /healthz open on purpose, so a 200 there says nothing.
+    """
+    url = f"https://{hostname}/"
     try:
         r = httpx.get(url, follow_redirects=False, timeout=10)
     except httpx.HTTPError as e:
@@ -182,13 +184,12 @@ def check_live(hostname: str) -> dict:
     loc = r.headers.get("location", "")
     if r.status_code in (301, 302, 303) and "cloudflareaccess.com" in loc:
         return {"ok": True, "state": "protected", "msg": "Up, and asks for a login first."}
+    if r.status_code == 403:
+        return {"ok": False, "state": "app-locked",
+                "msg": "Up and the app refuses anyone without a login, but Cloudflare's login page isn't showing yet "
+                       "(new Access apps can take ~20 min). Check again shortly."}
     if r.status_code == 200:
-        try:
-            body = r.json()
-        except (ValueError, json.JSONDecodeError):
-            body = {}
-        if body.get("ok"):
-            return {"ok": False, "state": "open", "msg": "Up but NOT behind a login. Check the Access app."}
+        return {"ok": False, "state": "open", "msg": "Up but NOT behind a login. Check the Access app."}
     if r.status_code in (502, 530):
         return {"ok": False, "state": "no-route", "msg": f"Cloudflare can't reach the app (HTTP {r.status_code}); is the tunnel running?"}
     return {"ok": False, "state": f"http-{r.status_code}", "msg": f"Unexpected answer: HTTP {r.status_code}"}
