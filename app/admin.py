@@ -229,7 +229,8 @@ def check_site(slug: str):
 @admin_app.get("/api/sites/{slug}/access")
 def site_access(slug: str):
     info = _info(slug)
-    out = {"configured": access.token_set(), "emails": [], "error": None}
+    out = {"configured": access.token_set(), "emails": [], "error": None,
+           "read_only": info.is_default and get_settings().access_managed_by_panel}
     if out["configured"]:
         try:
             out.update(access.list_emails(info))
@@ -242,8 +243,14 @@ class EmailIn(BaseModel):
     email: str
 
 
+def _editable(info: tenancy.SiteInfo) -> None:
+    if info.is_default and get_settings().access_managed_by_panel:
+        raise HTTPException(400, "This site's login list is managed by the access panel.")
+
+
 @admin_app.post("/api/sites/{slug}/access")
 def site_access_add(slug: str, body: EmailIn):
+    _editable(_info(slug))
     try:
         return {"emails": access.add_email(body.email, _info(slug))}
     except access.AccessError as e:
@@ -252,6 +259,7 @@ def site_access_add(slug: str, body: EmailIn):
 
 @admin_app.delete("/api/sites/{slug}/access/{email}")
 def site_access_remove(slug: str, email: str, request: Request):
+    _editable(_info(slug))
     protect = {_me(request)} if _me(request) else set()
     try:
         return {"emails": access.remove_email(email, protect, _info(slug))}

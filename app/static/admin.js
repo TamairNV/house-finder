@@ -188,6 +188,7 @@ async function loadAccess(slug) {
   const a = await api(`/api/sites/${slug}/access`);
   if (!a.configured) { box.innerHTML = `<p class="muted">Needs HF_CF_API_TOKEN in .env.</p>`; return; }
   if (a.error) { box.innerHTML = `<p class="err">${esc(a.error)}</p>`; return; }
+  if (a.read_only) { box.innerHTML = `${a.emails.map((e) => `<div class="access-row"><span>${esc(e)}</span></div>`).join("")}<p class="muted small">Managed by the access panel.</p>`; return; }
   box.innerHTML = `${a.emails.map((e) => `<div class="access-row"><span>${esc(e)}${e === window.ME ? ' <span class="muted">(you)</span>' : ""}</span>
       ${e === window.ME ? "" : `<button class="small danger" data-rm="${esc(e)}">Remove</button>`}</div>`).join("")}
     ${a.other_rules ? `<p class="muted small">+ ${a.other_rules} other rule(s) in Cloudflare.</p>` : ""}
