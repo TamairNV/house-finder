@@ -2,7 +2,7 @@
 
 > Written for future Claude sessions working on this repo (Tamair said they won't read it).
 > Keep it current: when you change behaviour, verify a site, or answer an open question, update this file.
-> Last updated: 2026-10-22 (first build session, cloud sandbox + read-only recon on TNV-server).
+> Last updated: 2026-11-05 (multi-site + admin site, §14).
 
 ## 1. What Tamair asked for (2026-10-22, paraphrased closely)
 
@@ -353,6 +353,41 @@ docker compose logs -f                        # first scrape starts ~2 min after
   so votes attribute automatically. "Votes" view: group ranking by net votes (voted/starred/active-status places,
   any filter) + "Your turn" list.
 
+## 14. Several sites + admin site (2026-11-05)
+
+Tamair asked for house-admin.tamairnv.co.uk where they (only) create finder sites for other groups, each on its own
+subdomain with its own emails, plus a setup button, logs moved to admin, and a network stats page.
+
+- **One container, one database per site, picked by Host** (`app/tenancy.py`). The original site (slug `house`,
+  HF_BASE_URL's host, `data/house_finder.db`) is unchanged. New sites: `data/sites/<slug>/house_finder.db`.
+  `tenancy.current()` is a contextvar set by `main.HostRouter` (requests) and `scheduler` (jobs); `db.session_scope()`
+  follows it, so pipeline/emailer/api code didn't change. LAN/Tailscale/localhost hosts go to the original site.
+  Unknown hosts get 404; disabled sites 404.
+- **Admin DB** `data/admin.db` (`app/admin_db.py`): `sites` (slug, hostname, owners, Access app/AUD/policy ids, setup
+  step status), `request_log` (every request to every site, 30-day retention), `fetch_log` (every scraper request),
+  `admin_meta` (admin AUD, last 10 tunnel config backups).
+- **Logins:** every new site is `strict_auth`: no valid Access JWT for *that site's* AUD → 403 (so a Host-spoofing LAN
+  request or another site's login doesn't get in). The original site stays lenient (LAN access). Admin site needs a JWT
+  for the admin AUD and an email in HF_ADMIN_EMAILS. Site owners (`sites.admin_emails`) can edit their own login list
+  in Settings; `access_managed_by_panel` only turns that editor off for the original site.
+- **Setup button** (`app/sites.py`, `app/cloudflare.py`): database (profile copied from a chosen site or defaults,
+  people + daily recipients from the emails, instant alerts off) → proxied CNAME to the "house" tunnel → tunnel ingress
+  rule before the catch-all (config backed up first) → Access app + reusable policy "House finder · <name>" with the
+  invited emails + admins → live check (expects a 302 to cloudflareaccess.com). Every step idempotent; "Run setup again"
+  retries. Delete removes the Access app/policy, ingress rule and our CNAME (never someone else's record) and moves the
+  DB to `data/sites/_deleted/`.
+- **Admin site itself:** `python -m app.cli setup-admin` (same steps; reuses the "Tamair only" reusable policy by name,
+  stores the AUD in admin.db). Until then the admin host answers 403 "run setup-admin".
+- **Scheduler:** one tick every 5 min scrapes each due site in turn under one lock (listing sites never see two of our
+  scrapers at once). Several sites in one city multiply scraper traffic; watch Network → Scrapers.
+- **Moved to admin:** AI log (all sites, `/api/logs/ai`), scrape runs, emails, app log (in-memory ring + `data/logs/app.log`).
+  The site's own Status page still shows its scrape runs/emails; the AI log tab is gone from sites.
+- **Network page:** inbound requests per site/hour, bytes, p50/p95, status classes, viewers, countries (cf-ipcountry),
+  slow/error requests; outbound scraper requests per host incl. 429/403/network errors; container interface bytes.
+- CLI: `--site <slug>` on any command, `sites`, `setup-admin`, `setup-site <slug>`.
+- Not done / ideas: Cloudflare zone analytics (needs Analytics: Read on the token), per-site SMTP sender, sharing one
+  scrape between sites in the same city.
+
 ## 13. Session log
 
 - 2026-10-22 (cloud): research, recon on server via Remote Control (read-only), full build, 77 tests, UI checked with
@@ -364,3 +399,4 @@ docker compose logs -f                        # first scrape starts ~2 min after
   rule; `/api/status` runs were never saved (expunge before commit). 88 tests. Deployed via docker compose on :8095.
   First scrape: rightmove 127, unihomes 108, afs 60, sturents 12, spareroom 7, openrent 4 (no errors). Only 3 pass the
   filters; 22 more failed only on 2 bathrooms < 0.5 per person; Tamair said 2 for 5 is fine → 0.4, 20 pass.
+- 2026-11-05 (cloud): multi-site + admin site (§14). 140 tests. openwolf init run in repo.

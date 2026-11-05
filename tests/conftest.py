@@ -11,6 +11,9 @@ def access_login(monkeypatch):
     monkeypatch.setattr(s, "cf_team_domain", access_jwt.TEAM)
     monkeypatch.setattr(s, "cf_access_aud", access_jwt.AUD)
     monkeypatch.setattr(s, "access_managed_by_panel", False)  # the real .env turns this on
+    monkeypatch.setattr(s, "log_requests", False)  # test_sites turns it on where it matters
+    monkeypatch.setattr(s, "admin_emails", s.admin_emails)
+    monkeypatch.setattr(s, "admin_access_aud", None)
     monkeypatch.setattr(access_token, "_signing_key", lambda token: access_jwt.KEY.public_key())
 
 

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <link rel="icon" href="/static/icons/favicon-32.png">
+  <title>House admin</title>
+  <link rel="stylesheet" href="/static/app.css?v={{ v }}">
+  <link rel="stylesheet" href="/static/admin.css?v={{ v }}">
+  <script>window.ME = {{ me|tojson }}; window.DOMAIN = {{ domain|tojson }};</script>
+  <script src="/static/common.js?v={{ v }}"></script>
+</head>
+<body class="admin">
+<header class="top">
+  <a class="brand" href="#overview">🛠️ House admin</a>
+  <nav id="nav">
+    <a href="#overview" data-tab="overview">Overview</a>
+    <a href="#sites" data-tab="sites">Sites</a>
+    <a href="#new" data-tab="new">New site</a>
+    <a href="#logs" data-tab="logs">Logs</a>
+    <a href="#network" data-tab="network">Network</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="muted summary">{{ me or "" }}</span>
+</header>
+<main id="view"><p class="muted">Loading…</p></main>
+<nav class="tabbar" aria-label="Main">
+  <a href="#overview" data-tab="overview"><span>📊</span>Overview</a>
+  <a href="#sites" data-tab="sites"><span>🏘️</span>Sites</a>
+  <a href="#new" data-tab="new"><span>➕</span>New</a>
+  <a href="#logs" data-tab="logs"><span>📜</span>Logs</a>
+  <a href="#network" data-tab="network"><span>📡</span>Network</a>
+</nav>
+<script src="/static/admin.js?v={{ v }}"></script>
+</body>
+</html>

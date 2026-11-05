@@ -17,12 +17,16 @@ def _signing_key(token: str):
     return _jwks(get_settings().cf_team_domain).get_signing_key_from_jwt(token).key
 
 
-def verified_email(token: str | None) -> str | None:
+def verified_email(token: str | None, aud: str | None = None) -> str | None:
+    """Email in a valid Access token for ``aud`` (default: the current site's Access app)."""
     s = get_settings()
-    if not (token and s.cf_team_domain and s.cf_access_aud):
+    if aud is None:
+        from .tenancy import current
+        aud = current().access_aud
+    if not (token and s.cf_team_domain and aud):
         return None
     try:
-        claims = jwt.decode(token, _signing_key(token), algorithms=["RS256"], audience=s.cf_access_aud,
+        claims = jwt.decode(token, _signing_key(token), algorithms=["RS256"], audience=aud,
                             issuer=f"https://{s.cf_team_domain}")
     except Exception:
         return None

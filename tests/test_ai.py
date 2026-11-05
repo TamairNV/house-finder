@@ -1,4 +1,4 @@
-from tests.access_jwt import signed_in
+from tests.access_jwt import signed_in, token
 import json
 import subprocess
 from types import SimpleNamespace
@@ -194,9 +194,13 @@ def test_ai_usage_is_logged_and_admin_only(session, monkeypatch):
     with TestClient(app) as c:
         assert c.post(f"/api/listings/{l.id}/ai/overview", headers=pal).status_code == 200
         assert c.post(f"/api/listings/{l.id}/ai/ask", json={"question": "Garden?"}, headers=pal).status_code == 502
-        assert c.get("/api/ai/usage", headers=pal).status_code == 403
-        d = c.get("/api/ai/usage", headers=boss).json()
+        assert c.get("/api/ai/usage", headers=boss).status_code == 404  # moved to the admin site
+        monkeypatch.setattr(st, "admin_access_aud", "admin-aud")
+        admin = {"host": "house-admin.tamairnv.co.uk"}
+        assert c.get("/api/logs/ai", headers={**admin, "Cf-Access-Jwt-Assertion": token("pal@example.com", aud="admin-aud")}).status_code == 403
+        assert c.get("/api/logs/ai", headers={**admin, **boss}).status_code == 403  # the house login isn't an admin login
+        d = c.get("/api/logs/ai", headers={**admin, "Cf-Access-Jwt-Assertion": token("boss@example.com", aud="admin-aud")}).json()
     assert [(r["kind"], r["user"], r["ok"]) for r in d["rows"]] == [("ask", "pal@example.com", False), ("overview", "pal@example.com", True)]
     assert d["rows"][0]["question"] == "Garden?" and d["rows"][0]["error"] == "nope"
-    assert d["people"] == [{"user": "pal@example.com", "requests": 2, "failed": 1, "input_tokens": 200, "output_tokens": 40,
+    assert d["people"] == [{"user": "pal@example.com", "site": "house", "requests": 2, "failed": 1, "input_tokens": 200, "output_tokens": 40,
                             "cost_usd": 0.0, "last": d["rows"][0]["at"]}]

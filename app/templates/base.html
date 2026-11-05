@@ -18,12 +18,12 @@
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/">🏠 House finder</a>
+  <a class="brand" href="/">🏠 {{ site.name if site and not site.is_default else "House finder" }}</a>
   <nav>
     <a href="/" class="{{ 'active' if page == 'listings' }}">Listings</a>
     <a href="/settings" class="{{ 'active' if page == 'settings' }}">Settings</a>
     <a href="/status" class="{{ 'active' if page == 'status' }}">Status</a>
-    {% if is_admin %}<a href="/ai-log" class="{{ 'active' if page == 'ai-log' }}">AI log</a>{% endif %}
+    {% if admin_url %}<a href="{{ admin_url }}">Admin ↗</a>{% endif %}
   </nav>
   <div class="spacer"></div>
   <span class="updated" id="updated"></span>
@@ -36,7 +36,7 @@
   <a href="/" class="{{ 'active' if page in ('listings', 'listing') }}"><span>🏠</span>Listings</a>
   <a href="/settings" class="{{ 'active' if page == 'settings' }}"><span>⚙️</span>Settings</a>
   <a href="/status" class="{{ 'active' if page == 'status' }}"><span>📊</span>Status</a>
-  {% if is_admin %}<a href="/ai-log" class="{{ 'active' if page == 'ai-log' }}"><span>✨</span>AI log</a>{% endif %}
+  {% if admin_url %}<a href="{{ admin_url }}"><span>🛠️</span>Admin</a>{% endif %}
 </nav>
 {% block scripts %}{% endblock %}
 </body>

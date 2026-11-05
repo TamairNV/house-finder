@@ -9,6 +9,10 @@
     python -m app.cli digest --to you@example.com [--send]           # preview (or send) a digest
     python -m app.cli export-listings out.json                       # scraped fields only, for debugging parsers
     python -m app.cli demo                                           # load fake listings to try the UI
+    python -m app.cli sites                                          # list the finder sites
+    python -m app.cli setup-admin                                    # put the admin site online (Cloudflare)
+    python -m app.cli setup-site <slug>                              # (re)run a site's setup steps
+Any command takes --site <slug> (before the command) to work on another site's database.
 """
 from __future__ import annotations
 
@@ -196,10 +200,30 @@ def cmd_demo(a) -> None:
     print(f"Inserted {a.n} demo listings (photos are random placeholders). Passing example id: {n}")
 
 
+def cmd_sites(a) -> None:
+    from . import tenancy
+    for s in tenancy.all_sites():
+        print(f"{s.slug:16} {s.hostname:36} {'on ' if s.enabled else 'off'} {'login' if s.access_aud else 'NO LOGIN'}  {s.name}")
+
+
+def cmd_setup_admin(a) -> None:
+    from .sites import setup_admin_site
+    print(json.dumps(setup_admin_site(), indent=2, default=str))
+
+
+def cmd_setup_site(a) -> None:
+    from .sites import run_setup
+    print(json.dumps(run_setup(a.slug), indent=2, default=str))
+
+
 def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(prog="python -m app.cli")
+    ap.add_argument("--site", help="site slug (default: the original site)")
     sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("sites"); p.set_defaults(fn=cmd_sites)
+    p = sub.add_parser("setup-admin"); p.set_defaults(fn=cmd_setup_admin)
+    p = sub.add_parser("setup-site"); p.add_argument("slug"); p.set_defaults(fn=cmd_setup_site)
     p = sub.add_parser("scrape"); p.add_argument("--source", choices=list(SCRAPERS)); p.add_argument("--pages", type=int)
     p.add_argument("--no-details", action="store_true"); p.set_defaults(fn=cmd_scrape)
     p = sub.add_parser("parse"); p.add_argument("source", choices=list(SCRAPERS)); p.add_argument("kind", choices=["search", "detail"])
@@ -212,10 +236,17 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("export-listings"); p.add_argument("file"); p.set_defaults(fn=cmd_export_listings)
     p = sub.add_parser("demo"); p.add_argument("-n", type=int, default=60); p.set_defaults(fn=cmd_demo)
     a = ap.parse_args(argv)
-    init_db()
-    with session_scope() as s:
-        seed_from_config(s)
-    a.fn(a)
+    from . import admin_db, tenancy
+    admin_db.ensure_default_site()
+    site = tenancy.by_slug(a.site) if a.site else tenancy.current()
+    if site is None:
+        sys.exit(f"No site called {a.site!r}")
+    with tenancy.use(site):
+        init_db()
+        if site.is_default:
+            with session_scope() as s:
+                seed_from_config(s)
+        a.fn(a)
 
 
 if __name__ == "__main__":

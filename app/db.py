@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 
@@ -13,46 +14,62 @@ class Base(DeclarativeBase):
     pass
 
 
-_engine = None
-_SessionLocal: sessionmaker[Session] | None = None
+_engines: dict[str, tuple] = {}  # db url -> (engine, sessionmaker); one per site
+_lock = threading.Lock()
 
 
-def get_engine():
-    global _engine, _SessionLocal
-    if _engine is None:
-        url = get_settings().db_url
+def _url() -> str:
+    from .tenancy import current
+    return current().db_url
+
+
+def _get(url: str | None = None) -> tuple:
+    url = url or _url()
+    hit = _engines.get(url)
+    if hit:
+        return hit
+    with _lock:
+        if url in _engines:
+            return _engines[url]
         kwargs = {"connect_args": {"check_same_thread": False}} if url.startswith("sqlite") else {}
-        _engine = create_engine(url, **kwargs)
+        engine = create_engine(url, **kwargs)
         if url.startswith("sqlite"):
-            @event.listens_for(_engine, "connect")
+            @event.listens_for(engine, "connect")
             def _pragmas(dbapi_conn, _):  # noqa: ANN001
                 cur = dbapi_conn.cursor()
                 cur.execute("PRAGMA journal_mode=WAL")
                 cur.execute("PRAGMA foreign_keys=ON")
                 cur.close()
-        _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
-    return _engine
+        _engines[url] = (engine, sessionmaker(bind=engine, expire_on_commit=False))
+        return _engines[url]
+
+
+def get_engine():
+    """Engine for the current site's database (see tenancy.current)."""
+    return _get()[0]
 
 
 def reset_engine(url: str | None = None) -> None:
     """Tests use this to point at a temporary database."""
-    global _engine, _SessionLocal
-    if _engine is not None:
-        _engine.dispose()
-    _engine = None
-    _SessionLocal = None
+    for engine, _ in _engines.values():
+        engine.dispose()
+    _engines.clear()
+    from . import admin_db, tenancy
+    admin_db.reset()
+    tenancy.invalidate()
     if url:
         get_settings().database_url = url
 
 
 def init_db() -> None:
+    """Create/upgrade the current site's tables."""
     from . import models  # noqa: F401  (register tables)
     engine = get_engine()
     Base.metadata.create_all(engine)
-    _add_missing_columns(engine)
+    add_missing_columns(engine, Base)
 
 
-def _add_missing_columns(engine) -> None:
+def add_missing_columns(engine, base=None) -> None:
     """Poor man's migrations: add columns that exist on the models but not in the DB.
 
     Enough for additive changes (new nullable/defaulted columns). Anything else
@@ -60,9 +77,10 @@ def _add_missing_columns(engine) -> None:
     """
     from sqlalchemy import inspect, text
 
+    base = base or Base
     insp = inspect(engine)
     with engine.begin() as conn:
-        for table in Base.metadata.sorted_tables:
+        for table in base.metadata.sorted_tables:
             if not insp.has_table(table.name):
                 continue
             have = {c["name"] for c in insp.get_columns(table.name)}
@@ -79,9 +97,7 @@ def _add_missing_columns(engine) -> None:
 
 @contextmanager
 def session_scope() -> Iterator[Session]:
-    get_engine()
-    assert _SessionLocal is not None
-    s = _SessionLocal()
+    s = _get()[1]()
     try:
         yield s
         s.commit()
