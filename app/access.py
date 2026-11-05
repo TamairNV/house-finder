@@ -29,10 +29,13 @@ class AccessError(Exception):
 
 
 def configured() -> bool:
-    return bool(get_settings().cf_api_token)
+    st = get_settings()
+    return bool(st.cf_api_token) and not st.access_managed_by_panel
 
 
 def _req(method: str, path: str, **kw) -> dict:
+    if get_settings().access_managed_by_panel:
+        raise AccessError("Access is managed in the access panel now.")
     st = get_settings()
     try:
         r = httpx.request(method, API + path, headers={"Authorization": f"Bearer {st.cf_api_token}"}, timeout=20, **kw)

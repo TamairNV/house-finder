@@ -1,3 +1,4 @@
+from tests.access_jwt import signed_in
 import json
 import subprocess
 from types import SimpleNamespace
@@ -188,8 +189,8 @@ def test_ai_usage_is_logged_and_admin_only(session, monkeypatch):
         return r
 
     monkeypatch.setattr(ai, "_call", fake_call)
-    boss = {"Cf-Access-Authenticated-User-Email": "Boss@example.com"}
-    pal = {"Cf-Access-Authenticated-User-Email": "pal@example.com"}
+    boss = signed_in("Boss@example.com")
+    pal = signed_in("pal@example.com")
     with TestClient(app) as c:
         assert c.post(f"/api/listings/{l.id}/ai/overview", headers=pal).status_code == 200
         assert c.post(f"/api/listings/{l.id}/ai/ask", json={"question": "Garden?"}, headers=pal).status_code == 502

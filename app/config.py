@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     cf_access_app_id: str | None = None  # found from base_url's hostname
     cf_access_policy_id: str | None = None  # first Allow policy on that app
     admin_emails: str = ""  # comma separated; only these can edit the list (empty = anyone signed in)
+    access_managed_by_panel: bool = False  # admin.tamairnv.co.uk owns the list, so the editor here turns off
+    cf_team_domain: str | None = None  # e.g. team.cloudflareaccess.com; verifies the Access login token
+    cf_access_aud: str | None = None  # the house Access app's AUD; no AUD means nobody counts as signed in
 
     # Scraping
     scheduler_enabled: bool = True

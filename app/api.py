@@ -11,7 +11,7 @@ from pydantic import BaseModel, EmailStr, ValidationError
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import Session
 
-from . import access, ai, geo, scheduler
+from . import access, access_token, ai, geo, scheduler
 from .bills import estimate_bills
 from .config import get_settings
 from .db import get_session
@@ -438,14 +438,14 @@ def scrape_now():
 # ---------------------------------------------------------------- login allow-list (Cloudflare Access)
 
 def _viewer(request: Request) -> str | None:
-    """Email of the signed-in user, as asserted by Cloudflare Access (absent on LAN/Tailscale access)."""
-    e = request.headers.get("cf-access-authenticated-user-email")
-    return e.strip().lower() if e else None
+    """Email of the signed-in user, from the verified Cloudflare Access token (absent on LAN/Tailscale access)."""
+    return access_token.verified_email(request.headers.get("cf-access-jwt-assertion"))
 
 
 def _can_edit_access(request: Request) -> bool:
+    viewer = _viewer(request)
     admins = get_settings().admins
-    return not admins or _viewer(request) in admins
+    return viewer is not None and (not admins or viewer in admins)
 
 
 @router.get("/access")

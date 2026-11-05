@@ -1,3 +1,4 @@
+from tests.access_jwt import signed_in
 import pytest
 from fastapi.testclient import TestClient
 
@@ -38,7 +39,7 @@ def cf(session, monkeypatch):
 
 
 def test_list_add_remove(cf):
-    boss = {"cf-access-authenticated-user-email": "Boss@example.com"}
+    boss = signed_in("Boss@example.com")
     with TestClient(app) as c:
         a = c.get("/api/access", headers=boss).json()
         assert a["emails"] == ["boss@example.com"] and a["can_edit"] and a["me"] == "boss@example.com" and a["other_rules"] == 1
@@ -51,7 +52,7 @@ def test_list_add_remove(cf):
 
 
 def test_only_admins_can_edit(cf):
-    mate = {"cf-access-authenticated-user-email": "mate@example.com"}
+    mate = signed_in("mate@example.com")
     with TestClient(app) as c:
         assert c.get("/api/access", headers=mate).json()["can_edit"] is False
         assert c.post("/api/access", json={"email": "x@example.com"}, headers=mate).status_code == 403

@@ -1,7 +1,17 @@
 import pytest
 
-from app import db
+from app import access_token, db
 from app.config import get_settings
+from tests import access_jwt
+
+
+@pytest.fixture(autouse=True)
+def access_login(monkeypatch):
+    s = get_settings()
+    monkeypatch.setattr(s, "cf_team_domain", access_jwt.TEAM)
+    monkeypatch.setattr(s, "cf_access_aud", access_jwt.AUD)
+    monkeypatch.setattr(s, "access_managed_by_panel", False)  # the real .env turns this on
+    monkeypatch.setattr(access_token, "_signing_key", lambda token: access_jwt.KEY.public_key())
 
 
 @pytest.fixture()
