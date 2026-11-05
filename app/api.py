@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -11,12 +11,12 @@ from pydantic import BaseModel, EmailStr, ValidationError
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import Session
 
-from . import access, access_token, ai, geo, scheduler
+from . import access, access_token, ai, geo, scheduler, tenancy
 from .bills import estimate_bills
 from .config import get_settings
 from .db import get_session
 from .emailer import Digest, render_digest, send_digest, send_email
-from .models import USER_STATUSES, AIUsage, EmailLog, Event, Listing, Recipient, ScrapeRun, utcnow
+from .models import USER_STATUSES, EmailLog, Event, Listing, Recipient, ScrapeRun
 from .pipeline import rescore_all
 from .profile import Profile
 from .scrapers.registry import SCRAPERS
@@ -204,34 +204,6 @@ def ai_ask(listing_id: int, body: Question, request: Request, s: Session = Depen
     return _run_ai(s, request, l, "ask", lambda: ai.ask(l, load_profile(s), body.question), body.question)
 
 
-@router.get("/ai/usage")
-def ai_usage(request: Request, days: int = 30, s: Session = Depends(get_session)):
-    """AI log for admins: recent requests plus per-person totals."""
-    if not _can_edit_access(request):
-        raise HTTPException(403, "Only an admin can see the AI log.")
-    since = utcnow() - timedelta(days=days)
-    rows = s.execute(select(AIUsage, Listing.title).outerjoin(Listing, Listing.id == AIUsage.listing_id)
-                     .where(AIUsage.at >= since).order_by(desc(AIUsage.id)).limit(500)).all()
-    people: dict[str, dict] = {}
-    for u, _ in rows:
-        p = people.setdefault(u.user_email or "", {"user": u.user_email, "requests": 0, "failed": 0, "input_tokens": 0,
-                                                    "output_tokens": 0, "cost_usd": 0.0, "last": None})
-        p["requests"] += 1
-        p["failed"] += 0 if u.ok else 1
-        p["input_tokens"] += u.input_tokens or 0
-        p["output_tokens"] += u.output_tokens or 0
-        p["cost_usd"] += u.cost_usd or 0
-        p["last"] = max(p["last"] or "", u.at.isoformat())
-    return {
-        "days": days, "me": _viewer(request),
-        "people": sorted(people.values(), key=lambda p: -p["requests"]),
-        "rows": [{"at": u.at.isoformat(), "user": u.user_email, "listing_id": u.listing_id, "title": title,
-                  "kind": u.kind, "question": u.question, "ok": u.ok, "error": u.error, "provider": u.provider,
-                  "model": u.model, "input_tokens": u.input_tokens, "output_tokens": u.output_tokens,
-                  "cost_usd": u.cost_usd, "duration_ms": u.duration_ms} for u, title in rows],
-    }
-
-
 @router.delete("/listings/{listing_id}/ai/chat")
 def ai_clear_chat(listing_id: int, s: Session = Depends(get_session)):
     l = s.get(Listing, listing_id)
@@ -308,11 +280,8 @@ def put_profile(body: dict, s: Session = Depends(get_session)):
         p = Profile.model_validate(body)
     except ValidationError as e:
         raise HTTPException(422, e.errors(include_url=False, include_context=False))
-    old = load_profile(s)
     save_profile(s, p)
     s.commit()  # the dependency only commits after the response is sent; a quick re-GET would see the old profile
-    if p.scrape_interval_hours != old.scrape_interval_hours:
-        scheduler.reschedule(p.scrape_interval_hours)
     n = rescore_all(s, p)
     return {"ok": True, "rescored": n}
 
@@ -431,7 +400,7 @@ def test_email(to: EmailStr):
 
 @router.post("/scrape")
 def scrape_now():
-    started = scheduler.trigger_scrape_now()
+    started = scheduler.trigger_scrape_now(tenancy.current())
     return {"started": started, "message": "Scrape started" if started else "A scrape is already running"}
 
 
@@ -442,9 +411,13 @@ def _viewer(request: Request) -> str | None:
     return access_token.verified_email(request.headers.get("cf-access-jwt-assertion"))
 
 
+def _site_admins() -> set[str]:
+    return get_settings().admins | set(tenancy.current().admin_emails)
+
+
 def _can_edit_access(request: Request) -> bool:
     viewer = _viewer(request)
-    admins = get_settings().admins
+    admins = _site_admins()
     return viewer is not None and (not admins or viewer in admins)
 
 
@@ -468,6 +441,8 @@ class AccessEmail(BaseModel):
 def add_access(body: AccessEmail, request: Request):
     if not _can_edit_access(request):
         raise HTTPException(403, "Only an admin can change who can log in.")
+    if not access.configured():
+        raise HTTPException(400, "The login list is managed from the admin site.")
     try:
         return {"emails": access.add_email(body.email)}
     except access.AccessError as e:
@@ -478,7 +453,9 @@ def add_access(body: AccessEmail, request: Request):
 def remove_access(email: str, request: Request):
     if not _can_edit_access(request):
         raise HTTPException(403, "Only an admin can change who can log in.")
-    protect = get_settings().admins | ({_viewer(request)} if _viewer(request) else set())
+    if not access.configured():
+        raise HTTPException(400, "The login list is managed from the admin site.")
+    protect = _site_admins() | ({_viewer(request)} if _viewer(request) else set())
     try:
         return {"emails": access.remove_email(email, protect)}
     except access.AccessError as e:
@@ -493,7 +470,7 @@ def updated(s: Session = Depends(get_session)):
     return {
         "last_scrape": last.isoformat() if last else None,
         "next_scrape": nxt.isoformat() if nxt else None,
-        "scraping": scheduler.state["scraping"],
+        "scraping": scheduler.is_scraping(),
         "new_24h": s.scalar(select(func.count()).select_from(Listing).where(
             Listing.first_seen > func.datetime("now", "-1 day"), Listing.passes_filters.is_(True),
             Listing.duplicate_of_id.is_(None))),
@@ -507,7 +484,7 @@ def status(s: Session = Depends(get_session)):
     nxt = scheduler.next_scrape()
     st = get_settings()
     return {
-        "scraping": scheduler.state["scraping"],
+        "scraping": scheduler.is_scraping(),
         "next_scrape": nxt.isoformat() if nxt else None,
         "smtp_configured": st.smtp_configured,
         "routing_api": bool(st.ors_api_key),

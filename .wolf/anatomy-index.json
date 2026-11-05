@@ -1,0 +1,4274 @@
+{
+  "version": 1,
+  "meta": {
+    "lastScanned": "2026-11-05T20:06:00.623Z",
+    "fileCount": 77,
+    "hits": 0,
+    "misses": 0,
+    "renderedHash": "fd9cd6843b1404075b01935138a4146ae739e6d4ce8942fd9de2e2fd4c95b0be",
+    "storeUpdatedAt": "2026-11-05T20:06:00.624Z",
+    "rootHash": "df512ff0eaf4fb01"
+  },
+  "files": {
+    ".dockerignore": {
+      "description": "Docker ignore rules",
+      "tokens": 14,
+      "hash": "155bdd5c40bf65b5",
+      "size": 51,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.310Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    ".gitignore": {
+      "description": "Git ignore rules",
+      "tokens": 19,
+      "hash": "9c93dfd4eed7b13d",
+      "size": 71,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.310Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/__init__.py": {
+      "description": "",
+      "tokens": 0,
+      "hash": "e3b0c44298fc1c14",
+      "size": 0,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.311Z",
+      "source": "scan",
+      "importance": 0.6183
+    },
+    "app/access_token.py": {
+      "description": "Verifies the Cloudflare Access login token. The plain email header can be faked by anyone who reaches the port directly.",
+      "tokens": 281,
+      "hash": "a99e86b2ca17f46c",
+      "size": 981,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.311Z",
+      "source": "scan",
+      "imports": [
+        "app/config.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/access.py": {
+      "description": "Manage who can log in: the email allow-list of the Cloudflare Access policy in front of the site.",
+      "tokens": 1643,
+      "hash": "f34efb700ed1783e",
+      "size": 5750,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.312Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "AccessError",
+          "kind": "class",
+          "startLine": 27,
+          "endLine": 28,
+          "tokens": 11
+        },
+        {
+          "name": "configured",
+          "kind": "fn",
+          "startLine": 31,
+          "endLine": 33,
+          "tokens": 34
+        },
+        {
+          "name": "_req",
+          "kind": "fn",
+          "startLine": 36,
+          "endLine": 51,
+          "tokens": 215
+        },
+        {
+          "name": "_find_target",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 96,
+          "tokens": 628
+        },
+        {
+          "name": "_policy",
+          "kind": "fn",
+          "startLine": 99,
+          "endLine": 101,
+          "tokens": 32
+        },
+        {
+          "name": "_emails",
+          "kind": "fn",
+          "startLine": 104,
+          "endLine": 105,
+          "tokens": 45
+        },
+        {
+          "name": "list_emails",
+          "kind": "fn",
+          "startLine": 108,
+          "endLine": 112,
+          "tokens": 76
+        },
+        {
+          "name": "_save",
+          "kind": "fn",
+          "startLine": 115,
+          "endLine": 118,
+          "tokens": 54
+        },
+        {
+          "name": "add_email",
+          "kind": "fn",
+          "startLine": 121,
+          "endLine": 131,
+          "tokens": 126
+        },
+        {
+          "name": "remove_email",
+          "kind": "fn",
+          "startLine": 134,
+          "endLine": 146,
+          "tokens": 176
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/config.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/ai.py": {
+      "description": "AI overview and Q&A for a listing.",
+      "tokens": 4658,
+      "hash": "2dcf89ce5e836e71",
+      "size": 16309,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.312Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "AIError",
+          "kind": "class",
+          "startLine": 87,
+          "endLine": 88,
+          "tokens": 10
+        },
+        {
+          "name": "_set_usage",
+          "kind": "fn",
+          "startLine": 94,
+          "endLine": 95,
+          "tokens": 28
+        },
+        {
+          "name": "last_usage",
+          "kind": "fn",
+          "startLine": 98,
+          "endLine": 100,
+          "tokens": 46
+        },
+        {
+          "name": "provider",
+          "kind": "fn",
+          "startLine": 103,
+          "endLine": 112,
+          "tokens": 105
+        },
+        {
+          "name": "enabled",
+          "kind": "fn",
+          "startLine": 115,
+          "endLine": 116,
+          "tokens": 16
+        },
+        {
+          "name": "_client",
+          "kind": "fn",
+          "startLine": 119,
+          "endLine": 123,
+          "tokens": 67
+        },
+        {
+          "name": "listing_context",
+          "kind": "fn",
+          "startLine": 126,
+          "endLine": 177,
+          "tokens": 858
+        },
+        {
+          "name": "_photo_blocks",
+          "kind": "fn",
+          "startLine": 180,
+          "endLine": 182,
+          "tokens": 55
+        },
+        {
+          "name": "_call",
+          "kind": "fn",
+          "startLine": 185,
+          "endLine": 212,
+          "tokens": 409
+        },
+        {
+          "name": "_with_photos",
+          "kind": "fn",
+          "startLine": 215,
+          "endLine": 216,
+          "tokens": 33
+        },
+        {
+          "name": "_first_turn",
+          "kind": "fn",
+          "startLine": 219,
+          "endLine": 221,
+          "tokens": 80
+        },
+        {
+          "name": "_call_with_photo_fallback",
+          "kind": "fn",
+          "startLine": 224,
+          "endLine": 236,
+          "tokens": 178
+        },
+        {
+          "name": "log_usage",
+          "kind": "fn",
+          "startLine": 239,
+          "endLine": 249,
+          "tokens": 244
+        },
+        {
+          "name": "generate_overview",
+          "kind": "fn",
+          "startLine": 252,
+          "endLine": 256,
+          "tokens": 67
+        },
+        {
+          "name": "ask",
+          "kind": "fn",
+          "startLine": 259,
+          "endLine": 279,
+          "tokens": 300
+        },
+        {
+          "name": "_inline_photo",
+          "kind": "fn",
+          "startLine": 292,
+          "endLine": 300,
+          "tokens": 135
+        },
+        {
+          "name": "_flatten",
+          "kind": "fn",
+          "startLine": 303,
+          "endLine": 326,
+          "tokens": 320
+        },
+        {
+          "name": "_call_cli",
+          "kind": "fn",
+          "startLine": 329,
+          "endLine": 364,
+          "tokens": 630
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class AIError(Exception):\ndef _set_usage(**kw) -> None:\ndef last_usage() -> dict:\ndef provider() -> str | None:\ndef enabled() -> bool:\ndef _client() -> anthropic.Anthropic:\ndef listing_context(l: Listing, profile: Profile) -> str:\ndef _photo_blocks(l: Listing) -> list[dict]:\ndef _call(system: str, messages: list[dict], max_tokens: int = 4000) -> str:\ndef _with_photos(l: Listing, text_blocks: list[dict]) -> list[dict]:\ndef _first_turn(l: Listing, profile: Profile, prompt: str, photos: bool) -> list[dict]:\ndef _call_with_photo_fallback(build) -> str:\ndef log_usage(s, *, user: str | None, listing_id: int | None, kind: str, question: str | None = None,\ndef generate_overview(l: Listing, profile: Profile) -> str:\ndef ask(l: Listing, profile: Profile, question: str) -> dict:\ndef _inline_photo(block: dict) -> dict | None:\ndef _flatten(messages: list[dict]) -> list[dict]:\ndef _call_cli(system: str, messages: list[dict]) -> str:",
+      "imports": [
+        "app/__init__.py",
+        "app/bills.py",
+        "app/config.py",
+        "app/models.py",
+        "app/profile.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/api.py": {
+      "description": "JSON API used by the web UI.",
+      "tokens": 6117,
+      "hash": "3cdab227ee233599",
+      "size": 21411,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.313Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "listing_dict",
+          "kind": "fn",
+          "startLine": 28,
+          "endLine": 57,
+          "tokens": 623
+        },
+        {
+          "name": "list_listings",
+          "kind": "fn",
+          "startLine": 73,
+          "endLine": 145,
+          "tokens": 884
+        },
+        {
+          "name": "get_listing",
+          "kind": "fn",
+          "startLine": 149,
+          "endLine": 163,
+          "tokens": 233
+        },
+        {
+          "name": "_ai_listing",
+          "kind": "fn",
+          "startLine": 166,
+          "endLine": 172,
+          "tokens": 79
+        },
+        {
+          "name": "_run_ai",
+          "kind": "fn",
+          "startLine": 175,
+          "endLine": 187,
+          "tokens": 166
+        },
+        {
+          "name": "ai_overview",
+          "kind": "fn",
+          "startLine": 191,
+          "endLine": 194,
+          "tokens": 86
+        },
+        {
+          "name": "Question",
+          "kind": "class",
+          "startLine": 197,
+          "endLine": 198,
+          "tokens": 13
+        },
+        {
+          "name": "ai_ask",
+          "kind": "fn",
+          "startLine": 202,
+          "endLine": 204,
+          "tokens": 69
+        },
+        {
+          "name": "ai_usage",
+          "kind": "fn",
+          "startLine": 208,
+          "endLine": 232,
+          "tokens": 458
+        },
+        {
+          "name": "ai_clear_chat",
+          "kind": "fn",
+          "startLine": 236,
+          "endLine": 242,
+          "tokens": 60
+        },
+        {
+          "name": "Vote",
+          "kind": "class",
+          "startLine": 245,
+          "endLine": 247,
+          "tokens": 20
+        },
+        {
+          "name": "ListingPatch",
+          "kind": "class",
+          "startLine": 250,
+          "endLine": 254,
+          "tokens": 61
+        },
+        {
+          "name": "patch_listing",
+          "kind": "fn",
+          "startLine": 258,
+          "endLine": 276,
+          "tokens": 219
+        },
+        {
+          "name": "meta",
+          "kind": "fn",
+          "startLine": 280,
+          "endLine": 294,
+          "tokens": 254
+        },
+        {
+          "name": "get_profile",
+          "kind": "fn",
+          "startLine": 300,
+          "endLine": 302,
+          "tokens": 55
+        },
+        {
+          "name": "put_profile",
+          "kind": "fn",
+          "startLine": 306,
+          "endLine": 317,
+          "tokens": 165
+        },
+        {
+          "name": "geocode",
+          "kind": "fn",
+          "startLine": 321,
+          "endLine": 325,
+          "tokens": 61
+        },
+        {
+          "name": "rescore",
+          "kind": "fn",
+          "startLine": 329,
+          "endLine": 330,
+          "tokens": 25
+        },
+        {
+          "name": "RecipientIn",
+          "kind": "class",
+          "startLine": 335,
+          "endLine": 349,
+          "tokens": 136
+        },
+        {
+          "name": "recipient_dict",
+          "kind": "fn",
+          "startLine": 352,
+          "endLine": 357,
+          "tokens": 64
+        },
+        {
+          "name": "list_recipients",
+          "kind": "fn",
+          "startLine": 361,
+          "endLine": 362,
+          "tokens": 42
+        },
+        {
+          "name": "create_recipient",
+          "kind": "fn",
+          "startLine": 366,
+          "endLine": 370,
+          "tokens": 49
+        },
+        {
+          "name": "update_recipient",
+          "kind": "fn",
+          "startLine": 374,
+          "endLine": 380,
+          "tokens": 74
+        },
+        {
+          "name": "delete_recipient",
+          "kind": "fn",
+          "startLine": 384,
+          "endLine": 388,
+          "tokens": 43
+        },
+        {
+          "name": "preview_digest",
+          "kind": "fn",
+          "startLine": 392,
+          "endLine": 404,
+          "tokens": 174
+        },
+        {
+          "name": "send_now",
+          "kind": "fn",
+          "startLine": 408,
+          "endLine": 418,
+          "tokens": 160
+        },
+        {
+          "name": "test_email",
+          "kind": "fn",
+          "startLine": 422,
+          "endLine": 427,
+          "tokens": 67
+        },
+        {
+          "name": "scrape_now",
+          "kind": "fn",
+          "startLine": 433,
+          "endLine": 435,
+          "tokens": 49
+        },
+        {
+          "name": "_viewer",
+          "kind": "fn",
+          "startLine": 440,
+          "endLine": 442,
+          "tokens": 71
+        },
+        {
+          "name": "_can_edit_access",
+          "kind": "fn",
+          "startLine": 445,
+          "endLine": 448,
+          "tokens": 52
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def listing_dict(l: Listing, full: bool = False) -> dict[str, Any]:\ndef list_listings(\ndef get_listing(listing_id: int, s: Session = Depends(get_session)):\ndef _ai_listing(listing_id: int, s: Session) -> Listing:\ndef _run_ai(s: Session, request: Request, l: Listing, kind: str, fn, question: str | None = None):\ndef ai_overview(listing_id: int, request: Request, s: Session = Depends(get_session)):\nclass Question(BaseModel):\ndef ai_ask(listing_id: int, body: Question, request: Request, s: Session = Depends(get_session)):\ndef ai_usage(request: Request, days: int = 30, s: Session = Depends(get_session)):\ndef ai_clear_chat(listing_id: int, s: Session = Depends(get_session)):\nclass Vote(BaseModel):\nclass ListingPatch(BaseModel):\ndef patch_listing(listing_id: int, patch: ListingPatch, s: Session = Depends(get_session)):\ndef meta(s: Session = Depends(get_session)):\ndef get_profile(s: Session = Depends(get_session)):\ndef put_profile(body: dict, s: Session = Depends(get_session)):\ndef geocode(postcode: str, s: Session = Depends(get_session)):\ndef rescore(s: Session = Depends(get_session)):\nclass RecipientIn(BaseModel):\ndef recipient_dict(r: Recipient) -> dict:\ndef list_recipients(s: Session = Depends(get_session)):\ndef create_recipient(body: RecipientIn, s: Session = Depends(get_session)):\ndef update_recipient(rid: int, body: RecipientIn, s: Session = Depends(get_session)):",
+      "imports": [
+        "app/__init__.py",
+        "app/bills.py",
+        "app/config.py",
+        "app/db.py",
+        "app/emailer.py",
+        "app/models.py",
+        "app/pipeline.py",
+        "app/profile.py",
+        "app/scrapers/registry.py",
+        "app/store.py"
+      ],
+      "importance": 0.1386
+    },
+    "app/bills.py": {
+      "description": "Estimate household bills when a listing doesn't include them.",
+      "tokens": 577,
+      "hash": "fb9b76b5b1ce1194",
+      "size": 2020,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.313Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "BillsEstimate",
+          "kind": "class",
+          "startLine": 11,
+          "endLine": 24,
+          "tokens": 99
+        },
+        {
+          "name": "BillsEstimate.to_dict",
+          "kind": "method",
+          "startLine": 23,
+          "endLine": 24,
+          "tokens": 28
+        },
+        {
+          "name": "estimate_bills",
+          "kind": "fn",
+          "startLine": 27,
+          "endLine": 48,
+          "tokens": 411
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/profile.py",
+        "app/textparse.py"
+      ],
+      "importance": 0.1792
+    },
+    "app/cli.py": {
+      "description": "Command line tools.",
+      "tokens": 3205,
+      "hash": "4423d9723a8c989b",
+      "size": 11218,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.313Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "_print_raw",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 39,
+          "tokens": 110
+        },
+        {
+          "name": "cmd_scrape",
+          "kind": "fn",
+          "startLine": 42,
+          "endLine": 51,
+          "tokens": 111
+        },
+        {
+          "name": "cmd_parse",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 64,
+          "tokens": 136
+        },
+        {
+          "name": "cmd_probe",
+          "kind": "fn",
+          "startLine": 67,
+          "endLine": 84,
+          "tokens": 195
+        },
+        {
+          "name": "cmd_rescore",
+          "kind": "fn",
+          "startLine": 87,
+          "endLine": 90,
+          "tokens": 43
+        },
+        {
+          "name": "cmd_reprice",
+          "kind": "fn",
+          "startLine": 93,
+          "endLine": 101,
+          "tokens": 154
+        },
+        {
+          "name": "cmd_prune_stubs",
+          "kind": "fn",
+          "startLine": 104,
+          "endLine": 119,
+          "tokens": 326
+        },
+        {
+          "name": "cmd_export_listings",
+          "kind": "fn",
+          "startLine": 130,
+          "endLine": 135,
+          "tokens": 108
+        },
+        {
+          "name": "cmd_digest",
+          "kind": "fn",
+          "startLine": 138,
+          "endLine": 153,
+          "tokens": 164
+        },
+        {
+          "name": "cmd_demo",
+          "kind": "fn",
+          "startLine": 164,
+          "endLine": 196,
+          "tokens": 657
+        },
+        {
+          "name": "main",
+          "kind": "fn",
+          "startLine": 199,
+          "endLine": 218,
+          "tokens": 440
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def _print_raw(r: RawListing) -> None:\ndef cmd_scrape(a) -> None:\ndef cmd_parse(a) -> None:\ndef cmd_probe(a) -> None:\ndef cmd_rescore(a) -> None:\ndef cmd_reprice(a) -> None:\ndef cmd_prune_stubs(a) -> None:\ndef cmd_export_listings(a) -> None:\ndef cmd_digest(a) -> None:\ndef cmd_demo(a) -> None:\ndef main(argv: list[str] | None = None) -> None:",
+      "imports": [
+        "app/db.py",
+        "app/models.py",
+        "app/scrapers/base.py",
+        "app/scrapers/registry.py",
+        "app/store.py",
+        "app/pipeline.py",
+        "app/config.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/config.py": {
+      "description": "Environment-level settings (secrets, paths). User-editable search settings live in profile.py.",
+      "tokens": 1136,
+      "hash": "5fa8be368eb7aaf7",
+      "size": 3975,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.313Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Settings",
+          "kind": "class",
+          "startLine": 10,
+          "endLine": 81,
+          "tokens": 1025
+        },
+        {
+          "name": "get_settings",
+          "kind": "fn",
+          "startLine": 85,
+          "endLine": 88,
+          "tokens": 33
+        }
+      ],
+      "symbolSource": "ts",
+      "importance": 1
+    },
+    "app/db.py": {
+      "description": "Base: get_engine, reset_engine, init_db, session_scope + 1 more",
+      "tokens": 860,
+      "hash": "75c096f5c4a76081",
+      "size": 3009,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.314Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Base",
+          "kind": "class",
+          "startLine": 12,
+          "endLine": 13,
+          "tokens": 11
+        },
+        {
+          "name": "get_engine",
+          "kind": "fn",
+          "startLine": 20,
+          "endLine": 34,
+          "tokens": 194
+        },
+        {
+          "name": "reset_engine",
+          "kind": "fn",
+          "startLine": 37,
+          "endLine": 45,
+          "tokens": 84
+        },
+        {
+          "name": "init_db",
+          "kind": "fn",
+          "startLine": 48,
+          "endLine": 52,
+          "tokens": 51
+        },
+        {
+          "name": "_add_missing_columns",
+          "kind": "fn",
+          "startLine": 55,
+          "endLine": 77,
+          "tokens": 314
+        },
+        {
+          "name": "session_scope",
+          "kind": "fn",
+          "startLine": 81,
+          "endLine": 92,
+          "tokens": 72
+        },
+        {
+          "name": "get_session",
+          "kind": "fn",
+          "startLine": 95,
+          "endLine": 98,
+          "tokens": 34
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/config.py",
+        "app/__init__.py"
+      ],
+      "importance": 0.586
+    },
+    "app/emailer.py": {
+      "description": "Email digests, instant 'great place' alerts and reminders.",
+      "tokens": 2693,
+      "hash": "56683897c304d940",
+      "size": 9426,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.314Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Digest",
+          "kind": "class",
+          "startLine": 29,
+          "endLine": 42,
+          "tokens": 188
+        },
+        {
+          "name": "Digest.listing_ids",
+          "kind": "method",
+          "startLine": 39,
+          "endLine": 42,
+          "tokens": 71
+        },
+        {
+          "name": "_wanted",
+          "kind": "fn",
+          "startLine": 45,
+          "endLine": 50,
+          "tokens": 74
+        },
+        {
+          "name": "build_digest",
+          "kind": "fn",
+          "startLine": 53,
+          "endLine": 89,
+          "tokens": 549
+        },
+        {
+          "name": "render_digest",
+          "kind": "fn",
+          "startLine": 92,
+          "endLine": 111,
+          "tokens": 284
+        },
+        {
+          "name": "send_email",
+          "kind": "fn",
+          "startLine": 114,
+          "endLine": 133,
+          "tokens": 276
+        },
+        {
+          "name": "_record",
+          "kind": "fn",
+          "startLine": 136,
+          "endLine": 138,
+          "tokens": 79
+        },
+        {
+          "name": "send_digest",
+          "kind": "fn",
+          "startLine": 141,
+          "endLine": 164,
+          "tokens": 278
+        },
+        {
+          "name": "send_instant_alerts",
+          "kind": "fn",
+          "startLine": 167,
+          "endLine": 194,
+          "tokens": 373
+        },
+        {
+          "name": "digest_due",
+          "kind": "fn",
+          "startLine": 197,
+          "endLine": 208,
+          "tokens": 208
+        },
+        {
+          "name": "run_due_digests",
+          "kind": "fn",
+          "startLine": 211,
+          "endLine": 220,
+          "tokens": 138
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class Digest:\n    def listing_ids(self) -> list[int]:\ndef _wanted(l: Listing, r: Recipient) -> bool:\ndef build_digest(session: Session, r: Recipient, profile: Profile, now: datetime | None = None) -> Digest:\ndef render_digest(d: Digest, r: Recipient, profile: Profile, kind: str = \"digest\") -> tuple[str, str, str]:\ndef send_email(to: str, subject: str, html: str, text: str) -> None:\ndef _record(session: Session, r: Recipient | None, kind: str, subject: str, ids: list[int], err: str | None) -> None:\ndef send_digest(session: Session, r: Recipient, profile: Profile, now: datetime | None = None,\ndef send_instant_alerts(session: Session, profile: Profile) -> int:\ndef digest_due(r: Recipient, now_local: datetime, last_local: datetime | None) -> bool:\ndef run_due_digests(session: Session, profile: Profile) -> int:",
+      "imports": [
+        "app/config.py",
+        "app/models.py",
+        "app/profile.py"
+      ],
+      "importance": 0.1609
+    },
+    "app/geo.py": {
+      "description": "Geocoding (postcodes.io, free, no key) and commute-time estimates.",
+      "tokens": 2336,
+      "hash": "59463651af6de8f8",
+      "size": 8175,
+      "mtimeMs": 1793909028289.0203,
+      "updatedAt": "2026-11-05T20:06:00.315Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "haversine_km",
+          "kind": "fn",
+          "startLine": 27,
+          "endLine": 32,
+          "tokens": 92
+        },
+        {
+          "name": "estimate_minutes",
+          "kind": "fn",
+          "startLine": 35,
+          "endLine": 41,
+          "tokens": 94
+        },
+        {
+          "name": "Commute",
+          "kind": "class",
+          "startLine": 45,
+          "endLine": 57,
+          "tokens": 82
+        },
+        {
+          "name": "Commute.to_dict",
+          "kind": "method",
+          "startLine": 56,
+          "endLine": 57,
+          "tokens": 17
+        },
+        {
+          "name": "_cache_get",
+          "kind": "fn",
+          "startLine": 60,
+          "endLine": 62,
+          "tokens": 49
+        },
+        {
+          "name": "_cache_put",
+          "kind": "fn",
+          "startLine": 65,
+          "endLine": 66,
+          "tokens": 42
+        },
+        {
+          "name": "geocode_postcode",
+          "kind": "fn",
+          "startLine": 72,
+          "endLine": 101,
+          "tokens": 367
+        },
+        {
+          "name": "resolve_place",
+          "kind": "fn",
+          "startLine": 104,
+          "endLine": 109,
+          "tokens": 77
+        },
+        {
+          "name": "ors_minutes",
+          "kind": "fn",
+          "startLine": 119,
+          "endLine": 143,
+          "tokens": 427
+        },
+        {
+          "name": "_route_key",
+          "kind": "fn",
+          "startLine": 146,
+          "endLine": 147,
+          "tokens": 49
+        },
+        {
+          "name": "prewarm_routes",
+          "kind": "fn",
+          "startLine": 150,
+          "endLine": 171,
+          "tokens": 342
+        },
+        {
+          "name": "cached_route_minutes",
+          "kind": "fn",
+          "startLine": 174,
+          "endLine": 183,
+          "tokens": 136
+        },
+        {
+          "name": "commutes_for",
+          "kind": "fn",
+          "startLine": 186,
+          "endLine": 200,
+          "tokens": 234
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:\ndef estimate_minutes(km: float, mode: str) -> float:\nclass Commute:\n    def to_dict(self) -> dict:\ndef _cache_get(session: Session, key: str) -> tuple[float | None, float | None] | None:\ndef _cache_put(session: Session, key: str, lat: float | None, lng: float | None) -> None:\ndef geocode_postcode(session: Session, postcode: str, client: httpx.Client | None = None) -> tuple[float, float] | None:\ndef resolve_place(session: Session, place: Place) -> tuple[float, float] | None:\ndef ors_minutes(origin: tuple[float, float], dests: list[tuple[float, float]], mode: str) -> list[float | None] | None:\ndef _route_key(origin: tuple[float, float], dest: tuple[float, float], mode: str) -> str:\ndef prewarm_routes(session: Session, origins: list[tuple[float, float]], people_places: list) -> int:\ndef cached_route_minutes(session: Session, origin: tuple[float, float], dest: tuple[float, float], mode: str) -> float | None:\ndef commutes_for(session: Session, lat: float, lng: float, people_places: list, use_api: bool = False) -> list[Commute]:",
+      "imports": [
+        "app/config.py",
+        "app/models.py",
+        "app/profile.py"
+      ],
+      "importance": 0.1522
+    },
+    "app/main.py": {
+      "description": "API: GET (7 endpoints)",
+      "tokens": 1198,
+      "hash": "b43b50c01cc87abb",
+      "size": 4191,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.315Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "_asset_version",
+          "kind": "fn",
+          "startLine": 29,
+          "endLine": 35,
+          "tokens": 94
+        },
+        {
+          "name": "lifespan",
+          "kind": "fn",
+          "startLine": 42,
+          "endLine": 48,
+          "tokens": 47
+        },
+        {
+          "name": "basic_auth",
+          "kind": "fn",
+          "startLine": 57,
+          "endLine": 70,
+          "tokens": 205
+        },
+        {
+          "name": "healthz",
+          "kind": "fn",
+          "startLine": 74,
+          "endLine": 75,
+          "tokens": 11
+        },
+        {
+          "name": "_page",
+          "kind": "fn",
+          "startLine": 78,
+          "endLine": 84,
+          "tokens": 125
+        },
+        {
+          "name": "index",
+          "kind": "fn",
+          "startLine": 88,
+          "endLine": 89,
+          "tokens": 25
+        },
+        {
+          "name": "listing_page",
+          "kind": "fn",
+          "startLine": 93,
+          "endLine": 97,
+          "tokens": 71
+        },
+        {
+          "name": "settings_page",
+          "kind": "fn",
+          "startLine": 101,
+          "endLine": 102,
+          "tokens": 28
+        },
+        {
+          "name": "status_page",
+          "kind": "fn",
+          "startLine": 106,
+          "endLine": 107,
+          "tokens": 26
+        },
+        {
+          "name": "ai_log_page",
+          "kind": "fn",
+          "startLine": 111,
+          "endLine": 112,
+          "tokens": 26
+        },
+        {
+          "name": "image_proxy",
+          "kind": "fn",
+          "startLine": 118,
+          "endLine": 125,
+          "tokens": 115
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/__init__.py",
+        "app/api.py",
+        "app/config.py",
+        "app/db.py",
+        "app/models.py",
+        "app/store.py"
+      ],
+      "importance": 0.2015
+    },
+    "app/models.py": {
+      "description": "SQLAlchemy: Setting (settings)",
+      "tokens": 2884,
+      "hash": "6fd1f3f0813ed0a2",
+      "size": 10091,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.315Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "utcnow",
+          "kind": "fn",
+          "startLine": 11,
+          "endLine": 12,
+          "tokens": 24
+        },
+        {
+          "name": "Setting",
+          "kind": "class",
+          "startLine": 15,
+          "endLine": 19,
+          "tokens": 74
+        },
+        {
+          "name": "Listing",
+          "kind": "class",
+          "startLine": 22,
+          "endLine": 97,
+          "tokens": 1245
+        },
+        {
+          "name": "Event",
+          "kind": "class",
+          "startLine": 103,
+          "endLine": 110,
+          "tokens": 157
+        },
+        {
+          "name": "Recipient",
+          "kind": "class",
+          "startLine": 113,
+          "endLine": 131,
+          "tokens": 387
+        },
+        {
+          "name": "ScrapeRun",
+          "kind": "class",
+          "startLine": 134,
+          "endLine": 145,
+          "tokens": 193
+        },
+        {
+          "name": "EmailLog",
+          "kind": "class",
+          "startLine": 148,
+          "endLine": 157,
+          "tokens": 171
+        },
+        {
+          "name": "GeoCache",
+          "kind": "class",
+          "startLine": 160,
+          "endLine": 165,
+          "tokens": 86
+        },
+        {
+          "name": "RouteCache",
+          "kind": "class",
+          "startLine": 168,
+          "endLine": 173,
+          "tokens": 95
+        },
+        {
+          "name": "AIUsage",
+          "kind": "class",
+          "startLine": 176,
+          "endLine": 192,
+          "tokens": 338
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def utcnow() -> datetime:\nclass Setting(Base):\nclass Listing(Base):\nclass Event(Base):\nclass Recipient(Base):\nclass ScrapeRun(Base):\nclass EmailLog(Base):\nclass GeoCache(Base):\nclass RouteCache(Base):\nclass AIUsage(Base):",
+      "imports": [
+        "app/db.py"
+      ],
+      "importance": 0.4572
+    },
+    "app/photos.py": {
+      "description": "Fetch listing photos with an on-disk cache (used by the /img proxy and the AI overview).",
+      "tokens": 531,
+      "hash": "54d93c45ee6548e7",
+      "size": 1858,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.315Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "PhotoError",
+          "kind": "class",
+          "startLine": 15,
+          "endLine": 18,
+          "tokens": 39
+        },
+        {
+          "name": "PhotoError.__init__",
+          "kind": "method",
+          "startLine": 16,
+          "endLine": 18,
+          "tokens": 30
+        },
+        {
+          "name": "allowed",
+          "kind": "fn",
+          "startLine": 21,
+          "endLine": 23,
+          "tokens": 43
+        },
+        {
+          "name": "fetch",
+          "kind": "fn",
+          "startLine": 26,
+          "endLine": 49,
+          "tokens": 312
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/config.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/pipeline.py": {
+      "description": "Scrape -> normalise -> enrich -> score -> events.",
+      "tokens": 7124,
+      "hash": "1b208226c3b0bdc1",
+      "size": 24935,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "normalise",
+          "kind": "fn",
+          "startLine": 43,
+          "endLine": 87,
+          "tokens": 735
+        },
+        {
+          "name": "reprice",
+          "kind": "fn",
+          "startLine": 90,
+          "endLine": 113,
+          "tokens": 458
+        },
+        {
+          "name": "_area_from_address",
+          "kind": "fn",
+          "startLine": 116,
+          "endLine": 124,
+          "tokens": 130
+        },
+        {
+          "name": "upsert",
+          "kind": "fn",
+          "startLine": 134,
+          "endLine": 170,
+          "tokens": 605
+        },
+        {
+          "name": "_use_routing",
+          "kind": "fn",
+          "startLine": 175,
+          "endLine": 178,
+          "tokens": 97
+        },
+        {
+          "name": "enrich_and_score",
+          "kind": "fn",
+          "startLine": 181,
+          "endLine": 236,
+          "tokens": 828
+        },
+        {
+          "name": "rescore_all",
+          "kind": "fn",
+          "startLine": 239,
+          "endLine": 249,
+          "tokens": 139
+        },
+        {
+          "name": "_street_parts",
+          "kind": "fn",
+          "startLine": 262,
+          "endLine": 274,
+          "tokens": 256
+        },
+        {
+          "name": "_street_key",
+          "kind": "fn",
+          "startLine": 277,
+          "endLine": 278,
+          "tokens": 24
+        },
+        {
+          "name": "_shingles",
+          "kind": "fn",
+          "startLine": 281,
+          "endLine": 283,
+          "tokens": 70
+        },
+        {
+          "name": "_similar_text",
+          "kind": "fn",
+          "startLine": 286,
+          "endLine": 287,
+          "tokens": 34
+        },
+        {
+          "name": "_close",
+          "kind": "fn",
+          "startLine": 290,
+          "endLine": 293,
+          "tokens": 45
+        },
+        {
+          "name": "_same_house",
+          "kind": "fn",
+          "startLine": 296,
+          "endLine": 326,
+          "tokens": 631
+        },
+        {
+          "name": "dedupe",
+          "kind": "fn",
+          "startLine": 329,
+          "endLine": 388,
+          "tokens": 949
+        },
+        {
+          "name": "_is_candidate",
+          "kind": "fn",
+          "startLine": 393,
+          "endLine": 395,
+          "tokens": 60
+        },
+        {
+          "name": "run_source",
+          "kind": "fn",
+          "startLine": 398,
+          "endLine": 472,
+          "tokens": 1166
+        },
+        {
+          "name": "run_all",
+          "kind": "fn",
+          "startLine": 475,
+          "endLine": 484,
+          "tokens": 103
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def normalise(raw: RawListing, profile: Profile, today: date | None = None) -> dict:\ndef reprice(listing: Listing, profile: Profile) -> bool:\ndef _area_from_address(addr: str | None) -> str | None:\ndef upsert(session: Session, raw: RawListing, profile: Profile) -> tuple[Listing, bool]:\ndef _use_routing(listing: Listing, profile: Profile) -> bool:\ndef enrich_and_score(session: Session, listing: Listing, profile: Profile, use_routing_api: bool = False) -> None:\ndef rescore_all(session: Session, profile: Profile | None = None) -> int:\ndef _street_parts(addr: str | None) -> tuple[str | None, str | None]:\ndef _street_key(addr: str | None) -> str | None:\ndef _shingles(l: Listing) -> set[str]:\ndef _similar_text(a: set[str], b: set[str]) -> float:\ndef _close(x: float | None, y: float | None, tol: float) -> bool | None:\ndef _same_house(a: Listing, b: Listing, sa: tuple, sb: tuple, text_sim: float) -> bool:\ndef dedupe(session: Session) -> int:\ndef _is_candidate(raw: RawListing, profile: Profile) -> bool:\ndef run_source(source: str, profile: Profile | None = None, max_pages: int | None = None,\ndef run_all(profile: Profile | None = None) -> list[ScrapeRun]:",
+      "imports": [
+        "app/__init__.py",
+        "app/bills.py",
+        "app/config.py",
+        "app/db.py",
+        "app/models.py",
+        "app/profile.py",
+        "app/scoring.py",
+        "app/scrapers/base.py",
+        "app/scrapers/registry.py",
+        "app/store.py",
+        "app/textparse.py"
+      ],
+      "importance": 0.2317
+    },
+    "app/profile.py": {
+      "description": "The search profile: everything the user can tweak from the Settings page.",
+      "tokens": 2059,
+      "hash": "08f62584154b5a2d",
+      "size": 7209,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Place",
+          "kind": "class",
+          "startLine": 16,
+          "endLine": 26,
+          "tokens": 139
+        },
+        {
+          "name": "Person",
+          "kind": "class",
+          "startLine": 29,
+          "endLine": 32,
+          "tokens": 35
+        },
+        {
+          "name": "SourceLocation",
+          "kind": "class",
+          "startLine": 35,
+          "endLine": 45,
+          "tokens": 143
+        },
+        {
+          "name": "SourceConfig",
+          "kind": "class",
+          "startLine": 48,
+          "endLine": 51,
+          "tokens": 45
+        },
+        {
+          "name": "BillsConfig",
+          "kind": "class",
+          "startLine": 54,
+          "endLine": 75,
+          "tokens": 350
+        },
+        {
+          "name": "EmailRules",
+          "kind": "class",
+          "startLine": 78,
+          "endLine": 81,
+          "tokens": 53
+        },
+        {
+          "name": "Weights",
+          "kind": "class",
+          "startLine": 84,
+          "endLine": 91,
+          "tokens": 58
+        },
+        {
+          "name": "Profile",
+          "kind": "class",
+          "startLine": 94,
+          "endLine": 166,
+          "tokens": 1108
+        },
+        {
+          "name": "Profile.all_places",
+          "kind": "method",
+          "startLine": 165,
+          "endLine": 166,
+          "tokens": 35
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class Place(BaseModel):\nclass Person(BaseModel):\nclass SourceLocation(BaseModel):\nclass SourceConfig(BaseModel):\nclass BillsConfig(BaseModel):\nclass EmailRules(BaseModel):\nclass Weights(BaseModel):\nclass Profile(BaseModel):\n    def all_places(self) -> list[tuple[Person, Place]]:",
+      "importance": 0.4759
+    },
+    "app/scheduler.py": {
+      "description": "Background jobs: periodic scraping, digest emails, instant alerts.",
+      "tokens": 1067,
+      "hash": "fca9cefcfa80bb84",
+      "size": 3734,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "scrape_job",
+          "kind": "fn",
+          "startLine": 26,
+          "endLine": 46,
+          "tokens": 261
+        },
+        {
+          "name": "email_job",
+          "kind": "fn",
+          "startLine": 49,
+          "endLine": 54,
+          "tokens": 54
+        },
+        {
+          "name": "trigger_scrape_now",
+          "kind": "fn",
+          "startLine": 57,
+          "endLine": 61,
+          "tokens": 53
+        },
+        {
+          "name": "first_scrape_time",
+          "kind": "fn",
+          "startLine": 64,
+          "endLine": 72,
+          "tokens": 132
+        },
+        {
+          "name": "start",
+          "kind": "fn",
+          "startLine": 75,
+          "endLine": 88,
+          "tokens": 217
+        },
+        {
+          "name": "reschedule",
+          "kind": "fn",
+          "startLine": 91,
+          "endLine": 93,
+          "tokens": 45
+        },
+        {
+          "name": "next_scrape",
+          "kind": "fn",
+          "startLine": 96,
+          "endLine": 100,
+          "tokens": 49
+        },
+        {
+          "name": "shutdown",
+          "kind": "fn",
+          "startLine": 103,
+          "endLine": 107,
+          "tokens": 41
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/config.py",
+        "app/db.py",
+        "app/emailer.py",
+        "app/models.py",
+        "app/pipeline.py",
+        "app/store.py"
+      ],
+      "importance": 0.1101
+    },
+    "app/scoring.py": {
+      "description": "Hard filters + a 0-100 score for each listing against the profile.",
+      "tokens": 1882,
+      "hash": "aa0d3cb8fc67e884",
+      "size": 6590,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "Evaluation",
+          "kind": "class",
+          "startLine": 13,
+          "endLine": 18,
+          "tokens": 82
+        },
+        {
+          "name": "_clamp",
+          "kind": "fn",
+          "startLine": 21,
+          "endLine": 22,
+          "tokens": 28
+        },
+        {
+          "name": "price_component",
+          "kind": "fn",
+          "startLine": 25,
+          "endLine": 33,
+          "tokens": 103
+        },
+        {
+          "name": "commute_component",
+          "kind": "fn",
+          "startLine": 36,
+          "endLine": 42,
+          "tokens": 70
+        },
+        {
+          "name": "move_in_component",
+          "kind": "fn",
+          "startLine": 45,
+          "endLine": 50,
+          "tokens": 102
+        },
+        {
+          "name": "text_blob",
+          "kind": "fn",
+          "startLine": 53,
+          "endLine": 54,
+          "tokens": 42
+        },
+        {
+          "name": "evaluate",
+          "kind": "fn",
+          "startLine": 57,
+          "endLine": 156,
+          "tokens": 1372
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/geo.py",
+        "app/models.py",
+        "app/profile.py"
+      ],
+      "importance": 0.1487
+    },
+    "app/scrapers/__init__.py": {
+      "description": "",
+      "tokens": 0,
+      "hash": "e3b0c44298fc1c14",
+      "size": 0,
+      "mtimeMs": 1793909028289.1492,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/scrapers/afs.py": {
+      "description": "Accommodation for Students (accommodationforstudents.com).",
+      "tokens": 2042,
+      "hash": "ac5b6e1b58b5fc0d",
+      "size": 7149,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.316Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "AFSScraper",
+          "kind": "class",
+          "startLine": 24,
+          "endLine": 140,
+          "tokens": 1780
+        },
+        {
+          "name": "AFSScraper.search_url",
+          "kind": "method",
+          "startLine": 32,
+          "endLine": 36,
+          "tokens": 87
+        },
+        {
+          "name": "AFSScraper.search",
+          "kind": "method",
+          "startLine": 42,
+          "endLine": 63,
+          "tokens": 298
+        },
+        {
+          "name": "AFSScraper.parse_search",
+          "kind": "method",
+          "startLine": 65,
+          "endLine": 75,
+          "tokens": 153
+        },
+        {
+          "name": "AFSScraper._from_property",
+          "kind": "method",
+          "startLine": 77,
+          "endLine": 104,
+          "tokens": 533
+        },
+        {
+          "name": "AFSScraper.parse_detail",
+          "kind": "method",
+          "startLine": 106,
+          "endLine": 140,
+          "tokens": 624
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class AFSScraper(CardScraper):\n    def search_url(self, p: Profile, loc: SourceLocation, page: int) -> str | None:\n    def search(self, profile, loc, max_pages):\n    def parse_search(self, html: str, url: str) -> list[RawListing]:\n    def _from_property(self, p: dict) -> RawListing:\n    def parse_detail(self, html: str, base: RawListing) -> RawListing:",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/base.py": {
+      "description": "View: get",
+      "tokens": 2724,
+      "hash": "9aa4803b9c74c531",
+      "size": 9534,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.317Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "BlockedError",
+          "kind": "class",
+          "startLine": 22,
+          "endLine": 23,
+          "tokens": 27
+        },
+        {
+          "name": "RawListing",
+          "kind": "class",
+          "startLine": 27,
+          "endLine": 85,
+          "tokens": 664
+        },
+        {
+          "name": "RawListing.merge",
+          "kind": "method",
+          "startLine": 64,
+          "endLine": 80,
+          "tokens": 221
+        },
+        {
+          "name": "Fetcher",
+          "kind": "class",
+          "startLine": 94,
+          "endLine": 187,
+          "tokens": 1189
+        },
+        {
+          "name": "Fetcher.__init__",
+          "kind": "method",
+          "startLine": 97,
+          "endLine": 115,
+          "tokens": 194
+        },
+        {
+          "name": "Fetcher.close",
+          "kind": "method",
+          "startLine": 117,
+          "endLine": 120,
+          "tokens": 37
+        },
+        {
+          "name": "Fetcher._wait",
+          "kind": "method",
+          "startLine": 122,
+          "endLine": 129,
+          "tokens": 94
+        },
+        {
+          "name": "Fetcher.get",
+          "kind": "method",
+          "startLine": 131,
+          "endLine": 159,
+          "tokens": 448
+        },
+        {
+          "name": "Fetcher._browser_get",
+          "kind": "method",
+          "startLine": 161,
+          "endLine": 180,
+          "tokens": 280
+        },
+        {
+          "name": "Fetcher._maybe_dump",
+          "kind": "method",
+          "startLine": 182,
+          "endLine": 187,
+          "tokens": 101
+        },
+        {
+          "name": "Scraper",
+          "kind": "class",
+          "startLine": 190,
+          "endLine": 246,
+          "tokens": 652
+        },
+        {
+          "name": "Scraper.__init__",
+          "kind": "method",
+          "startLine": 197,
+          "endLine": 199,
+          "tokens": 41
+        },
+        {
+          "name": "Scraper.parse_detail",
+          "kind": "method",
+          "startLine": 209,
+          "endLine": 210,
+          "tokens": 26
+        },
+        {
+          "name": "Scraper.location_key",
+          "kind": "method",
+          "startLine": 212,
+          "endLine": 213,
+          "tokens": 31
+        },
+        {
+          "name": "Scraper.search",
+          "kind": "method",
+          "startLine": 215,
+          "endLine": 231,
+          "tokens": 218
+        },
+        {
+          "name": "Scraper.fetch_detail",
+          "kind": "method",
+          "startLine": 233,
+          "endLine": 237,
+          "tokens": 68
+        },
+        {
+          "name": "Scraper.max_rent_pcm",
+          "kind": "method",
+          "startLine": 240,
+          "endLine": 243,
+          "tokens": 77
+        },
+        {
+          "name": "Scraper.max_rent_pppw",
+          "kind": "method",
+          "startLine": 245,
+          "endLine": 246,
+          "tokens": 26
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class BlockedError(RuntimeError):\nclass RawListing:\n    def merge(self, other: \"RawListing\") -> \"RawListing\":\nclass Fetcher:\n    def __init__(self, source: str):\n    def close(self) -> None:\n    def _wait(self, host: str) -> None:\n    def get(self, url: str, *, params: dict | None = None, json_api: bool = False, browser: bool = False) -> str:\n    def _browser_get(self, url: str) -> str:\n    def _maybe_dump(self, url: str, body: str) -> None:\nclass Scraper(ABC):\n    def __init__(self, fetcher: Fetcher | None = None):\n    def parse_detail(self, html: str, base: RawListing) -> RawListing:\n    def location_key(self, loc: SourceLocation) -> str | None:\n    def search(self, profile: Profile, loc: SourceLocation, max_pages: int) -> Iterator[RawListing]:\n    def fetch_detail(self, raw: RawListing) -> RawListing:\n    def max_rent_pcm(self, p: Profile) -> int:\n    def max_rent_pppw(self, p: Profile) -> int:",
+      "importance": 0.6737
+    },
+    "app/scrapers/extract.py": {
+      "description": "Generic extraction helpers shared by all site scrapers.",
+      "tokens": 3007,
+      "hash": "c74a635c663ea3f4",
+      "size": 10532,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.317Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "soupify",
+          "kind": "fn",
+          "startLine": 21,
+          "endLine": 22,
+          "tokens": 23
+        },
+        {
+          "name": "text_of",
+          "kind": "fn",
+          "startLine": 25,
+          "endLine": 28,
+          "tokens": 39
+        },
+        {
+          "name": "next_data",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 40,
+          "tokens": 74
+        },
+        {
+          "name": "json_ld",
+          "kind": "fn",
+          "startLine": 43,
+          "endLine": 51,
+          "tokens": 93
+        },
+        {
+          "name": "_balanced",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 80,
+          "tokens": 230
+        },
+        {
+          "name": "js_assignment",
+          "kind": "fn",
+          "startLine": 83,
+          "endLine": 99,
+          "tokens": 194
+        },
+        {
+          "name": "js_arrays",
+          "kind": "fn",
+          "startLine": 102,
+          "endLine": 109,
+          "tokens": 106
+        },
+        {
+          "name": "walk",
+          "kind": "fn",
+          "startLine": 112,
+          "endLine": 121,
+          "tokens": 91
+        },
+        {
+          "name": "find_dicts",
+          "kind": "fn",
+          "startLine": 124,
+          "endLine": 132,
+          "tokens": 121
+        },
+        {
+          "name": "dget",
+          "kind": "fn",
+          "startLine": 135,
+          "endLine": 147,
+          "tokens": 131
+        },
+        {
+          "name": "first",
+          "kind": "fn",
+          "startLine": 150,
+          "endLine": 155,
+          "tokens": 46
+        },
+        {
+          "name": "image_urls",
+          "kind": "fn",
+          "startLine": 161,
+          "endLine": 171,
+          "tokens": 131
+        },
+        {
+          "name": "to_float",
+          "kind": "fn",
+          "startLine": 174,
+          "endLine": 180,
+          "tokens": 57
+        },
+        {
+          "name": "to_int",
+          "kind": "fn",
+          "startLine": 183,
+          "endLine": 185,
+          "tokens": 28
+        },
+        {
+          "name": "cards_by_link",
+          "kind": "fn",
+          "startLine": 190,
+          "endLine": 218,
+          "tokens": 335
+        },
+        {
+          "name": "card_images",
+          "kind": "fn",
+          "startLine": 221,
+          "endLine": 234,
+          "tokens": 166
+        },
+        {
+          "name": "label_values",
+          "kind": "fn",
+          "startLine": 239,
+          "endLine": 271,
+          "tokens": 368
+        },
+        {
+          "name": "_cell_value",
+          "kind": "fn",
+          "startLine": 274,
+          "endLine": 285,
+          "tokens": 130
+        },
+        {
+          "name": "yes_no",
+          "kind": "fn",
+          "startLine": 288,
+          "endLine": 296,
+          "tokens": 87
+        },
+        {
+          "name": "meta_content",
+          "kind": "fn",
+          "startLine": 299,
+          "endLine": 301,
+          "tokens": 60
+        },
+        {
+          "name": "find_latlng",
+          "kind": "fn",
+          "startLine": 312,
+          "endLine": 318,
+          "tokens": 92
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def soupify(html: str) -> BeautifulSoup:\ndef text_of(el: Tag | BeautifulSoup | None) -> str:\ndef next_data(soup: BeautifulSoup) -> dict | None:\ndef json_ld(soup: BeautifulSoup) -> list[Any]:\ndef _balanced(s: str, start: int) -> str | None:\ndef js_assignment(html: str, name: str) -> Any | None:\ndef js_arrays(html: str) -> dict[str, list]:\ndef walk(obj: Any) -> Iterator[dict]:\ndef find_dicts(obj: Any, *required: str, any_of: tuple[str, ...] = ()) -> list[dict]:\ndef dget(d: Any, path: str, default: Any = None) -> Any:\ndef first(d: Any, *paths: str) -> Any:\ndef image_urls(obj: Any, host_hint: str | None = None) -> list[str]:\ndef to_float(v: Any) -> float | None:\ndef to_int(v: Any) -> int | None:\ndef cards_by_link(soup: BeautifulSoup, href_re: str, base_url: str, max_climb: int = 8) -> list[tuple[str, str, Tag]]:\ndef card_images(card: Tag, base_url: str) -> list[str]:\ndef label_values(soup: BeautifulSoup) -> dict[str, str]:\ndef _cell_value(cell: Tag) -> str:\ndef yes_no(v: str | None) -> bool | None:\ndef meta_content(soup: BeautifulSoup, prop: str) -> str | None:\ndef find_latlng(html: str, uk_only: bool = True) -> tuple[float, float] | None:",
+      "importance": 0.5817
+    },
+    "app/scrapers/generic.py": {
+      "description": "Shared logic for sites where we read listing cards as text + detail label/value pairs.",
+      "tokens": 1685,
+      "hash": "ecc0d1a0a32860e5",
+      "size": 5899,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.317Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "CardScraper",
+          "kind": "class",
+          "startLine": 13,
+          "endLine": 111,
+          "tokens": 1532
+        },
+        {
+          "name": "CardScraper.card_to_raw",
+          "kind": "method",
+          "startLine": 20,
+          "endLine": 37,
+          "tokens": 309
+        },
+        {
+          "name": "CardScraper.parse_search",
+          "kind": "method",
+          "startLine": 39,
+          "endLine": 47,
+          "tokens": 114
+        },
+        {
+          "name": "CardScraper.parse_detail",
+          "kind": "method",
+          "startLine": 49,
+          "endLine": 111,
+          "tokens": 1034
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py"
+      ],
+      "importance": 0.3256
+    },
+    "app/scrapers/hive.py": {
+      "description": "Hive Estates (hiveestates.com): Newcastle letting agent (Jesmond/Heaton/Fenham, students and professionals).",
+      "tokens": 1487,
+      "hash": "ba31eeb2e25dc2e5",
+      "size": 5204,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.317Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "HiveScraper",
+          "kind": "class",
+          "startLine": 26,
+          "endLine": 108,
+          "tokens": 1135
+        },
+        {
+          "name": "HiveScraper.search_url",
+          "kind": "method",
+          "startLine": 31,
+          "endLine": 32,
+          "tokens": 51
+        },
+        {
+          "name": "HiveScraper.parse_search",
+          "kind": "method",
+          "startLine": 34,
+          "endLine": 54,
+          "tokens": 326
+        },
+        {
+          "name": "HiveScraper.parse_detail",
+          "kind": "method",
+          "startLine": 66,
+          "endLine": 108,
+          "tokens": 632
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/openrent.py": {
+      "description": "OpenRent (openrent.co.uk): landlord-direct lets, no agency fees.",
+      "tokens": 1586,
+      "hash": "47ddd417d5974b6d",
+      "size": 5550,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "OpenRentScraper",
+          "kind": "class",
+          "startLine": 27,
+          "endLine": 121,
+          "tokens": 1260
+        },
+        {
+          "name": "OpenRentScraper.search_url",
+          "kind": "method",
+          "startLine": 35,
+          "endLine": 38,
+          "tokens": 77
+        },
+        {
+          "name": "OpenRentScraper.search",
+          "kind": "method",
+          "startLine": 40,
+          "endLine": 42,
+          "tokens": 44
+        },
+        {
+          "name": "OpenRentScraper.parse_search",
+          "kind": "method",
+          "startLine": 44,
+          "endLine": 91,
+          "tokens": 682
+        },
+        {
+          "name": "OpenRentScraper.parse_detail",
+          "kind": "method",
+          "startLine": 93,
+          "endLine": 121,
+          "tokens": 392
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/registry.py": {
+      "description": "get_scraper",
+      "tokens": 195,
+      "hash": "ce986c78bb49216b",
+      "size": 682,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "imports": [
+        "app/scrapers/afs.py",
+        "app/scrapers/base.py",
+        "app/scrapers/hive.py",
+        "app/scrapers/openrent.py",
+        "app/scrapers/rightmove.py",
+        "app/scrapers/spareroom.py",
+        "app/scrapers/sturents.py",
+        "app/scrapers/unihomes.py",
+        "app/scrapers/zoopla.py"
+      ],
+      "importance": 0.1766
+    },
+    "app/scrapers/rightmove.py": {
+      "description": "Rightmove (rightmove.co.uk). Biggest portal; most Newcastle student agents list here.",
+      "tokens": 3636,
+      "hash": "b025ba2591f6a188",
+      "size": 12727,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "decode_flat",
+          "kind": "fn",
+          "startLine": 30,
+          "endLine": 63,
+          "tokens": 276
+        },
+        {
+          "name": "page_model",
+          "kind": "fn",
+          "startLine": 66,
+          "endLine": 74,
+          "tokens": 119
+        },
+        {
+          "name": "RightmoveScraper",
+          "kind": "class",
+          "startLine": 77,
+          "endLine": 237,
+          "tokens": 2717
+        },
+        {
+          "name": "RightmoveScraper.search_url",
+          "kind": "method",
+          "startLine": 82,
+          "endLine": 86,
+          "tokens": 128
+        },
+        {
+          "name": "RightmoveScraper.parse_search",
+          "kind": "method",
+          "startLine": 89,
+          "endLine": 114,
+          "tokens": 385
+        },
+        {
+          "name": "RightmoveScraper._from_search_json",
+          "kind": "method",
+          "startLine": 116,
+          "endLine": 155,
+          "tokens": 754
+        },
+        {
+          "name": "RightmoveScraper.parse_detail",
+          "kind": "method",
+          "startLine": 158,
+          "endLine": 169,
+          "tokens": 179
+        },
+        {
+          "name": "RightmoveScraper._from_property_data",
+          "kind": "method",
+          "startLine": 171,
+          "endLine": 215,
+          "tokens": 853
+        },
+        {
+          "name": "RightmoveScraper._text_fallback",
+          "kind": "method",
+          "startLine": 217,
+          "endLine": 237,
+          "tokens": 345
+        },
+        {
+          "name": "_photo",
+          "kind": "fn",
+          "startLine": 240,
+          "endLine": 249,
+          "tokens": 117
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def decode_flat(data: list) -> Any:\ndef page_model(html: str) -> dict | None:\nclass RightmoveScraper(Scraper):\n    def search_url(self, p: Profile, loc: SourceLocation, page: int) -> str | None:\n    def parse_search(self, html: str, url: str) -> list[RawListing]:\n    def _from_search_json(self, d: dict) -> RawListing | None:\n    def parse_detail(self, html: str, base: RawListing) -> RawListing:\n    def _from_property_data(self, pd: dict, r: RawListing) -> RawListing:\n    def _text_fallback(self, html: str, r: RawListing) -> RawListing:\ndef _photo(i: dict) -> str | None:",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py"
+      ],
+      "importance": 0.1502
+    },
+    "app/scrapers/spareroom.py": {
+      "description": "SpareRoom (spareroom.co.uk). Mostly single rooms; we keep only whole-property ads.",
+      "tokens": 1607,
+      "hash": "b74b88c3df93dfeb",
+      "size": 5625,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "SpareRoomScraper",
+          "kind": "class",
+          "startLine": 27,
+          "endLine": 104,
+          "tokens": 1256
+        },
+        {
+          "name": "SpareRoomScraper.search_url",
+          "kind": "method",
+          "startLine": 35,
+          "endLine": 37,
+          "tokens": 56
+        },
+        {
+          "name": "SpareRoomScraper.parse_search",
+          "kind": "method",
+          "startLine": 39,
+          "endLine": 85,
+          "tokens": 842
+        },
+        {
+          "name": "SpareRoomScraper.parse_detail",
+          "kind": "method",
+          "startLine": 87,
+          "endLine": 104,
+          "tokens": 294
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/sturents.py": {
+      "description": "StuRents (sturents.com): student houses, prices per person per week.",
+      "tokens": 3090,
+      "hash": "c2e6ca3aacae0b9c",
+      "size": 10820,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "StuRentsScraper",
+          "kind": "class",
+          "startLine": 30,
+          "endLine": 205,
+          "tokens": 2709
+        },
+        {
+          "name": "StuRentsScraper.search_url",
+          "kind": "method",
+          "startLine": 39,
+          "endLine": 40,
+          "tokens": 48
+        },
+        {
+          "name": "StuRentsScraper.search",
+          "kind": "method",
+          "startLine": 42,
+          "endLine": 67,
+          "tokens": 432
+        },
+        {
+          "name": "StuRentsScraper._sitemap_urls",
+          "kind": "method",
+          "startLine": 69,
+          "endLine": 79,
+          "tokens": 197
+        },
+        {
+          "name": "StuRentsScraper.parse_search",
+          "kind": "method",
+          "startLine": 81,
+          "endLine": 123,
+          "tokens": 697
+        },
+        {
+          "name": "StuRentsScraper._card_from_markup",
+          "kind": "method",
+          "startLine": 136,
+          "endLine": 151,
+          "tokens": 242
+        },
+        {
+          "name": "StuRentsScraper.parse_detail",
+          "kind": "method",
+          "startLine": 153,
+          "endLine": 205,
+          "tokens": 901
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "class StuRentsScraper(CardScraper):\n    def search_url(self, p: Profile, loc: SourceLocation, page: int) -> str | None:\n    def search(self, profile, loc, max_pages):\n    def _sitemap_urls(self, cities: list[str], limit_maps: int) -> list[str]:\n    def parse_search(self, html: str, url: str) -> list[RawListing]:\n    def _card_from_markup(self, a, residences: dict[str, dict]) -> RawListing:\n    def parse_detail(self, html: str, base: RawListing) -> RawListing:",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/unihomes.py": {
+      "description": "UniHomes (unihomes.co.uk): all-bills-included student houses, priced per person per week.",
+      "tokens": 1578,
+      "hash": "964034bacc3c10c1",
+      "size": 5523,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "initial_properties",
+          "kind": "fn",
+          "startLine": 24,
+          "endLine": 39,
+          "tokens": 157
+        },
+        {
+          "name": "UniHomesScraper",
+          "kind": "class",
+          "startLine": 42,
+          "endLine": 127,
+          "tokens": 1201
+        },
+        {
+          "name": "UniHomesScraper.search_url",
+          "kind": "method",
+          "startLine": 50,
+          "endLine": 52,
+          "tokens": 56
+        },
+        {
+          "name": "UniHomesScraper.search",
+          "kind": "method",
+          "startLine": 54,
+          "endLine": 76,
+          "tokens": 304
+        },
+        {
+          "name": "UniHomesScraper.parse_search",
+          "kind": "method",
+          "startLine": 78,
+          "endLine": 82,
+          "tokens": 79
+        },
+        {
+          "name": "UniHomesScraper._from_json",
+          "kind": "method",
+          "startLine": 84,
+          "endLine": 109,
+          "tokens": 460
+        },
+        {
+          "name": "UniHomesScraper.parse_detail",
+          "kind": "method",
+          "startLine": 111,
+          "endLine": 127,
+          "tokens": 247
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/scrapers/zoopla.py": {
+      "description": "Zoopla (zoopla.co.uk). Behind Cloudflare: usually needs HF_PLAYWRIGHT_ENABLED=true.",
+      "tokens": 798,
+      "hash": "5b895102756e131b",
+      "size": 2791,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.318Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "ZooplaScraper",
+          "kind": "class",
+          "startLine": 17,
+          "endLine": 57,
+          "tokens": 638
+        },
+        {
+          "name": "ZooplaScraper.search_url",
+          "kind": "method",
+          "startLine": 26,
+          "endLine": 29,
+          "tokens": 111
+        },
+        {
+          "name": "ZooplaScraper.parse_search",
+          "kind": "method",
+          "startLine": 31,
+          "endLine": 57,
+          "tokens": 467
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/scrapers/base.py",
+        "app/scrapers/extract.py",
+        "app/scrapers/generic.py"
+      ],
+      "importance": 0.1268
+    },
+    "app/static/ai_log.js": {
+      "description": "AI log (admins only): who used the AI, on which place, and roughly what it cost.",
+      "tokens": 892,
+      "hash": "f7456780a87cb1cd",
+      "size": 3131,
+      "mtimeMs": 1793909028292.811,
+      "updatedAt": "2026-11-05T20:06:00.320Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "fmtTok",
+          "kind": "fn",
+          "startLine": 2,
+          "endLine": 2,
+          "tokens": 34
+        },
+        {
+          "name": "fmtCost",
+          "kind": "fn",
+          "startLine": 3,
+          "endLine": 3,
+          "tokens": 19
+        },
+        {
+          "name": "who",
+          "kind": "fn",
+          "startLine": 4,
+          "endLine": 4,
+          "tokens": 22
+        },
+        {
+          "name": "load",
+          "kind": "fn",
+          "startLine": 6,
+          "endLine": 35,
+          "tokens": 770
+        }
+      ],
+      "symbolSource": "ts",
+      "importance": 0.1101
+    },
+    "app/static/app.css": {
+      "description": "Styles: 101 rules, 31 vars, 6 media queries, 1 animations",
+      "tokens": 9315,
+      "hash": "9e4e7e4715b105b0",
+      "size": 32603,
+      "mtimeMs": 1793909028294.586,
+      "updatedAt": "2026-11-05T20:06:00.320Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/static/common.js": {
+      "description": "Shared helpers for all pages (no build step, plain ES2020).",
+      "tokens": 2324,
+      "hash": "fad5d7e252cef877",
+      "size": 8158,
+      "mtimeMs": 1793909028294.586,
+      "updatedAt": "2026-11-05T20:06:00.320Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "api",
+          "kind": "fn",
+          "startLine": 2,
+          "endLine": 15,
+          "tokens": 159
+        },
+        {
+          "name": "esc",
+          "kind": "fn",
+          "startLine": 17,
+          "endLine": 17,
+          "tokens": 40
+        },
+        {
+          "name": "img",
+          "kind": "fn",
+          "startLine": 18,
+          "endLine": 18,
+          "tokens": 19
+        },
+        {
+          "name": "money",
+          "kind": "fn",
+          "startLine": 19,
+          "endLine": 19,
+          "tokens": 42
+        },
+        {
+          "name": "fmtDate",
+          "kind": "fn",
+          "startLine": 20,
+          "endLine": 20,
+          "tokens": 39
+        },
+        {
+          "name": "fmtDateTime",
+          "kind": "fn",
+          "startLine": 21,
+          "endLine": 21,
+          "tokens": 59
+        },
+        {
+          "name": "toast",
+          "kind": "fn",
+          "startLine": 25,
+          "endLine": 31,
+          "tokens": 56
+        },
+        {
+          "name": "scoreClass",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 36,
+          "tokens": 44
+        },
+        {
+          "name": "priceBlock",
+          "kind": "fn",
+          "startLine": 38,
+          "endLine": 44,
+          "tokens": 135
+        },
+        {
+          "name": "placeCoords",
+          "kind": "fn",
+          "startLine": 48,
+          "endLine": 52,
+          "tokens": 66
+        },
+        {
+          "name": "gmapsUrl",
+          "kind": "fn",
+          "startLine": 53,
+          "endLine": 57,
+          "tokens": 72
+        },
+        {
+          "name": "commuteChips",
+          "kind": "fn",
+          "startLine": 59,
+          "endLine": 64,
+          "tokens": 101
+        },
+        {
+          "name": "availChip",
+          "kind": "fn",
+          "startLine": 66,
+          "endLine": 70,
+          "tokens": 73
+        },
+        {
+          "name": "patchListing",
+          "kind": "fn",
+          "startLine": 72,
+          "endLine": 74,
+          "tokens": 30
+        },
+        {
+          "name": "ago",
+          "kind": "fn",
+          "startLine": 77,
+          "endLine": 85,
+          "tokens": 104
+        },
+        {
+          "name": "md",
+          "kind": "fn",
+          "startLine": 89,
+          "endLine": 113,
+          "tokens": 339
+        },
+        {
+          "name": "refreshUpdated",
+          "kind": "fn",
+          "startLine": 116,
+          "endLine": 126,
+          "tokens": 206
+        },
+        {
+          "name": "groupNames",
+          "kind": "fn",
+          "startLine": 131,
+          "endLine": 131,
+          "tokens": 26
+        },
+        {
+          "name": "myName",
+          "kind": "fn",
+          "startLine": 132,
+          "endLine": 135,
+          "tokens": 51
+        },
+        {
+          "name": "setMyName",
+          "kind": "fn",
+          "startLine": 136,
+          "endLine": 136,
+          "tokens": 23
+        },
+        {
+          "name": "whoPicker",
+          "kind": "fn",
+          "startLine": 137,
+          "endLine": 142,
+          "tokens": 103
+        },
+        {
+          "name": "vote",
+          "kind": "fn",
+          "startLine": 144,
+          "endLine": 150,
+          "tokens": 94
+        },
+        {
+          "name": "voteFaces",
+          "kind": "fn",
+          "startLine": 152,
+          "endLine": 157,
+          "tokens": 80
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "const api = async (path, opts = {}) => {\nconst esc = (s) => String(s ?? \"\").replace(/[&<>\"']/g, (c) => ({ \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\", \"'\": \"&#39;\" }[c]));\nconst img = (u) => (u ? \"/img?u=\" + encodeURIComponent(u) : \"\");\nconst money = (n, dp = 0) => (n == null ? \"?\" : \"£\" + Number(n).toLocaleString(\"en-GB\", { minimumFractionDigits: dp, maximumFractionDigits: dp }));\nconst fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(\"en-GB\", { day: \"numeric\", month: \"short\", year: \"numeric\" }) : \"?\");\nconst fmtDateTime = (iso) => (iso ? new Date(iso + (iso.endsWith(\"Z\") || iso.includes(\"+\") ? \"\" : \"Z\")).toLocaleString(\"en-GB\", { day: \"numeric\", month: \"short\", hour: \"2-digit\", minute: \"2-digit\" }) : \"\");\nfunction toast(msg, ms = 2500) {\nfunction scoreClass(score) {\nfunction priceBlock(l) {\nfunction placeCoords(c) {\nfunction gmapsUrl(l, c) {\nfunction commuteChips(l) {\nfunction availChip(l) {\nasync function patchListing(id, body) {\nfunction ago(iso) {\nfunction md(src) {\nasync function refreshUpdated() {\nconst groupNames = () => (window.PROFILE?.people || []).map((p) => p.name).filter(Boolean);\nfunction myName() {\nfunction setMyName(n) { try { localStorage.setItem(\"hf.me\", n); } catch (_) {} }\nfunction whoPicker() {\nasync function vote(l, value, person = myName()) {\nfunction voteFaces(l) {",
+      "importance": 0.1101
+    },
+    "app/static/listing.js": {
+      "description": "Listing detail page.",
+      "tokens": 5608,
+      "hash": "8a6cb5bdee68f41d",
+      "size": 19681,
+      "mtimeMs": 1793909028296.272,
+      "updatedAt": "2026-11-05T20:06:00.321Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "load",
+          "kind": "fn",
+          "startLine": 7,
+          "endLine": 134,
+          "tokens": 3091
+        },
+        {
+          "name": "setupGallery",
+          "kind": "fn",
+          "startLine": 137,
+          "endLine": 213,
+          "tokens": 1011
+        },
+        {
+          "name": "mdMore",
+          "kind": "fn",
+          "startLine": 219,
+          "endLine": 226,
+          "tokens": 146
+        },
+        {
+          "name": "renderAI",
+          "kind": "fn",
+          "startLine": 228,
+          "endLine": 292,
+          "tokens": 1127
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "async function load() {\nfunction setupGallery(photos) {\nfunction mdMore(text) {\nfunction renderAI(l) {",
+      "importance": 0.1101
+    },
+    "app/static/listings.js": {
+      "description": "Listings page: filters, sort, cards / table / map views.",
+      "tokens": 6540,
+      "hash": "9a67f336bf3c456c",
+      "size": 22943,
+      "mtimeMs": 1793909028296.272,
+      "updatedAt": "2026-11-05T20:06:00.322Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "loadState",
+          "kind": "fn",
+          "startLine": 10,
+          "endLine": 12,
+          "tokens": 34
+        },
+        {
+          "name": "saveState",
+          "kind": "fn",
+          "startLine": 13,
+          "endLine": 13,
+          "tokens": 29
+        },
+        {
+          "name": "readFilters",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 23,
+          "tokens": 116
+        },
+        {
+          "name": "applyState",
+          "kind": "fn",
+          "startLine": 25,
+          "endLine": 35,
+          "tokens": 181
+        },
+        {
+          "name": "queryString",
+          "kind": "fn",
+          "startLine": 37,
+          "endLine": 45,
+          "tokens": 136
+        },
+        {
+          "name": "activeFilterCount",
+          "kind": "fn",
+          "startLine": 48,
+          "endLine": 54,
+          "tokens": 106
+        },
+        {
+          "name": "refresh",
+          "kind": "fn",
+          "startLine": 56,
+          "endLine": 69,
+          "tokens": 160
+        },
+        {
+          "name": "restoreScroll",
+          "kind": "fn",
+          "startLine": 74,
+          "endLine": 81,
+          "tokens": 79
+        },
+        {
+          "name": "render",
+          "kind": "fn",
+          "startLine": 84,
+          "endLine": 94,
+          "tokens": 176
+        },
+        {
+          "name": "stepPhoto",
+          "kind": "fn",
+          "startLine": 99,
+          "endLine": 123,
+          "tokens": 379
+        },
+        {
+          "name": "endTouch",
+          "kind": "fn",
+          "startLine": 141,
+          "endLine": 155,
+          "tokens": 209
+        },
+        {
+          "name": "isNew",
+          "kind": "fn",
+          "startLine": 159,
+          "endLine": 159,
+          "tokens": 28
+        },
+        {
+          "name": "cardHtml",
+          "kind": "fn",
+          "startLine": 164,
+          "endLine": 201,
+          "tokens": 812
+        },
+        {
+          "name": "cardFoot",
+          "kind": "fn",
+          "startLine": 203,
+          "endLine": 215,
+          "tokens": 244
+        },
+        {
+          "name": "tableHtml",
+          "kind": "fn",
+          "startLine": 217,
+          "endLine": 230,
+          "tokens": 331
+        },
+        {
+          "name": "renderMap",
+          "kind": "fn",
+          "startLine": 233,
+          "endLine": 270,
+          "tokens": 858
+        },
+        {
+          "name": "loadRings",
+          "kind": "fn",
+          "startLine": 271,
+          "endLine": 271,
+          "tokens": 31
+        },
+        {
+          "name": "saveRings",
+          "kind": "fn",
+          "startLine": 272,
+          "endLine": 272,
+          "tokens": 28
+        },
+        {
+          "name": "renderVotes",
+          "kind": "fn",
+          "startLine": 276,
+          "endLine": 312,
+          "tokens": 826
+        },
+        {
+          "name": "setView",
+          "kind": "fn",
+          "startLine": 314,
+          "endLine": 318,
+          "tokens": 61
+        },
+        {
+          "name": "init",
+          "kind": "fn",
+          "startLine": 320,
+          "endLine": 382,
+          "tokens": 1004
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "function loadState() {\nfunction saveState(st) { try { localStorage.setItem(STATE_KEY, JSON.stringify(st)); } catch (_) {} }\nfunction readFilters() {\nfunction applyState(st) {\nfunction queryString(st) {\nfunction activeFilterCount(st) {\nasync function refresh() {\nfunction restoreScroll() {\nfunction render() {\nfunction stepPhoto(card, dir, fromDx = 0) {\nconst endTouch = () => {\nconst isNew = (l) => l.first_seen && Date.now() - new Date(l.first_seen + \"Z\") < 48 * 3600 * 1000;\nfunction cardHtml(l) {\nfunction cardFoot(l) {\nfunction tableHtml() {\nfunction renderMap(el) {\nfunction loadRings() { try { return localStorage.getItem(\"hf.rings\") !== \"0\"; } catch (_) { return true; } }\nfunction saveRings(on) { try { localStorage.setItem(\"hf.rings\", on ? \"1\" : \"0\"); } catch (_) {} }\nasync function renderVotes(el) {\nfunction setView(v, rerender = true) {\nasync function init() {",
+      "importance": 0.1101
+    },
+    "app/static/manifest.webmanifest": {
+      "description": "",
+      "tokens": 128,
+      "hash": "9529cee8f99b81d8",
+      "size": 480,
+      "mtimeMs": 1793909028296.272,
+      "updatedAt": "2026-11-05T20:06:00.322Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/static/settings.js": {
+      "description": "Settings page: edits the profile JSON and the email recipients.",
+      "tokens": 4302,
+      "hash": "a72eda485c933db2",
+      "size": 15074,
+      "mtimeMs": 1793909028296.272,
+      "updatedAt": "2026-11-05T20:06:00.322Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "$",
+          "kind": "fn",
+          "startLine": 3,
+          "endLine": 3,
+          "tokens": 14
+        },
+        {
+          "name": "setVal",
+          "kind": "fn",
+          "startLine": 19,
+          "endLine": 19,
+          "tokens": 28
+        },
+        {
+          "name": "getVal",
+          "kind": "fn",
+          "startLine": 20,
+          "endLine": 24,
+          "tokens": 49
+        },
+        {
+          "name": "fill",
+          "kind": "fn",
+          "startLine": 26,
+          "endLine": 43,
+          "tokens": 435
+        },
+        {
+          "name": "bathHint",
+          "kind": "fn",
+          "startLine": 45,
+          "endLine": 48,
+          "tokens": 86
+        },
+        {
+          "name": "renderPeople",
+          "kind": "fn",
+          "startLine": 50,
+          "endLine": 70,
+          "tokens": 534
+        },
+        {
+          "name": "collect",
+          "kind": "fn",
+          "startLine": 72,
+          "endLine": 89,
+          "tokens": 308
+        },
+        {
+          "name": "geocodePlaces",
+          "kind": "fn",
+          "startLine": 91,
+          "endLine": 98,
+          "tokens": 98
+        },
+        {
+          "name": "setDirty",
+          "kind": "fn",
+          "startLine": 101,
+          "endLine": 101,
+          "tokens": 20
+        },
+        {
+          "name": "save",
+          "kind": "fn",
+          "startLine": 103,
+          "endLine": 116,
+          "tokens": 123
+        },
+        {
+          "name": "recipientHtml",
+          "kind": "fn",
+          "startLine": 122,
+          "endLine": 141,
+          "tokens": 615
+        },
+        {
+          "name": "loadRecipients",
+          "kind": "fn",
+          "startLine": 143,
+          "endLine": 146,
+          "tokens": 54
+        },
+        {
+          "name": "readRecipient",
+          "kind": "fn",
+          "startLine": 148,
+          "endLine": 152,
+          "tokens": 75
+        },
+        {
+          "name": "loadAccess",
+          "kind": "fn",
+          "startLine": 155,
+          "endLine": 180,
+          "tokens": 547
+        },
+        {
+          "name": "init",
+          "kind": "fn",
+          "startLine": 182,
+          "endLine": 233,
+          "tokens": 854
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "const $ = (id) => document.getElementById(id);\nfunction setVal(el, v) { if (el.type === \"checkbox\") el.checked = !!v; else el.value = v ?? \"\"; }\nfunction getVal(el) {\nfunction fill() {\nfunction bathHint() {\nfunction renderPeople() {\nfunction collect() {\nasync function geocodePlaces() {\nconst setDirty = (on) => document.body.classList.toggle(\"dirty\", on);\nasync function save() {\nfunction recipientHtml(r) {\nasync function loadRecipients() {\nfunction readRecipient(div) {\nasync function loadAccess() {\nasync function init() {",
+      "importance": 0.1101
+    },
+    "app/static/status.js": {
+      "description": "Status page: scrape runs, emails, manual triggers.",
+      "tokens": 632,
+      "hash": "b854d5417ba1f3dd",
+      "size": 2214,
+      "mtimeMs": 1793909028296.272,
+      "updatedAt": "2026-11-05T20:06:00.322Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "$",
+          "kind": "fn",
+          "startLine": 2,
+          "endLine": 2,
+          "tokens": 14
+        },
+        {
+          "name": "load",
+          "kind": "fn",
+          "startLine": 4,
+          "endLine": 22,
+          "tokens": 514
+        }
+      ],
+      "symbolSource": "ts",
+      "importance": 0.1101
+    },
+    "app/static/vendor/leaflet/leaflet.css": {
+      "description": "Styles: 143 rules",
+      "tokens": 4231,
+      "hash": "a783710282418482",
+      "size": 14806,
+      "mtimeMs": 1793909028298.2322,
+      "updatedAt": "2026-11-05T20:06:00.323Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/static/vendor/leaflet/leaflet.js": {
+      "description": "l: N, a, h + 25 more",
+      "tokens": 42158,
+      "hash": "db49d009c841f5ca",
+      "size": 147552,
+      "mtimeMs": 1793909028298.2322,
+      "updatedAt": "2026-11-05T20:06:00.326Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/store.py": {
+      "description": "Load/save the Profile (stored as JSON in the settings table).",
+      "tokens": 394,
+      "hash": "b54f40e5d1dbec84",
+      "size": 1378,
+      "mtimeMs": 1793909028298.2322,
+      "updatedAt": "2026-11-05T20:06:00.326Z",
+      "source": "scan",
+      "imports": [
+        "app/config.py",
+        "app/models.py",
+        "app/profile.py"
+      ],
+      "importance": 0.2341
+    },
+    "app/templates/ai_log.html": {
+      "description": "",
+      "tokens": 142,
+      "hash": "b4ed9da99fc9e175",
+      "size": 532,
+      "mtimeMs": 1793909028298.2322,
+      "updatedAt": "2026-11-05T20:06:00.326Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/base.html": {
+      "description": "{% block title %}House finder{% endblock %}",
+      "tokens": 562,
+      "hash": "3167a9fbae2def72",
+      "size": 2121,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.326Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/email_digest.html": {
+      "description": "Declares html",
+      "tokens": 891,
+      "hash": "6ecea11543112a44",
+      "size": 3352,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/email_digest.txt": {
+      "description": "",
+      "tokens": 269,
+      "hash": "8f08d4491b905a3e",
+      "size": 1076,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/index.html": {
+      "description": "",
+      "tokens": 958,
+      "hash": "9a9d207ca5fd48a8",
+      "size": 3605,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/listing.html": {
+      "description": "",
+      "tokens": 83,
+      "hash": "5b713bd37debaf71",
+      "size": 312,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/settings.html": {
+      "description": "",
+      "tokens": 1489,
+      "hash": "43bd53767b99321b",
+      "size": 5585,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/templates/status.html": {
+      "description": "",
+      "tokens": 292,
+      "hash": "7198a95691310d9c",
+      "size": 1094,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.327Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "app/textparse.py": {
+      "description": "Free-text parsing helpers.",
+      "tokens": 5639,
+      "hash": "b82080cd6fa3ddb2",
+      "size": 19770,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "clean",
+          "kind": "fn",
+          "startLine": 24,
+          "endLine": 27,
+          "tokens": 39
+        },
+        {
+          "name": "parse_money",
+          "kind": "fn",
+          "startLine": 30,
+          "endLine": 39,
+          "tokens": 76
+        },
+        {
+          "name": "PriceMention",
+          "kind": "class",
+          "startLine": 45,
+          "endLine": 60,
+          "tokens": 146
+        },
+        {
+          "name": "classify_unit",
+          "kind": "fn",
+          "startLine": 99,
+          "endLine": 115,
+          "tokens": 248
+        },
+        {
+          "name": "extract_prices",
+          "kind": "fn",
+          "startLine": 118,
+          "endLine": 155,
+          "tokens": 624
+        },
+        {
+          "name": "RentGuess",
+          "kind": "class",
+          "startLine": 159,
+          "endLine": 164,
+          "tokens": 84
+        },
+        {
+          "name": "_whole_weekly",
+          "kind": "fn",
+          "startLine": 167,
+          "endLine": 172,
+          "tokens": 146
+        },
+        {
+          "name": "guess_rent",
+          "kind": "fn",
+          "startLine": 178,
+          "endLine": 258,
+          "tokens": 1377
+        },
+        {
+          "name": "detect_bills_included",
+          "kind": "fn",
+          "startLine": 263,
+          "endLine": 282,
+          "tokens": 222
+        },
+        {
+          "name": "_year_for",
+          "kind": "fn",
+          "startLine": 287,
+          "endLine": 295,
+          "tokens": 84
+        },
+        {
+          "name": "parse_date_fragment",
+          "kind": "fn",
+          "startLine": 298,
+          "endLine": 336,
+          "tokens": 418
+        },
+        {
+          "name": "parse_available",
+          "kind": "fn",
+          "startLine": 346,
+          "endLine": 360,
+          "tokens": 157
+        },
+        {
+          "name": "academic_year_hint",
+          "kind": "fn",
+          "startLine": 363,
+          "endLine": 374,
+          "tokens": 162
+        },
+        {
+          "name": "_num",
+          "kind": "fn",
+          "startLine": 383,
+          "endLine": 387,
+          "tokens": 38
+        },
+        {
+          "name": "parse_bedrooms",
+          "kind": "fn",
+          "startLine": 390,
+          "endLine": 396,
+          "tokens": 108
+        },
+        {
+          "name": "parse_bathrooms",
+          "kind": "fn",
+          "startLine": 399,
+          "endLine": 415,
+          "tokens": 228
+        },
+        {
+          "name": "parse_furnished",
+          "kind": "fn",
+          "startLine": 418,
+          "endLine": 426,
+          "tokens": 86
+        },
+        {
+          "name": "parse_postcode",
+          "kind": "fn",
+          "startLine": 433,
+          "endLine": 443,
+          "tokens": 139
+        },
+        {
+          "name": "is_student_let",
+          "kind": "fn",
+          "startLine": 446,
+          "endLine": 452,
+          "tokens": 82
+        },
+        {
+          "name": "let_agreed",
+          "kind": "fn",
+          "startLine": 455,
+          "endLine": 456,
+          "tokens": 42
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def clean(text: str | None) -> str:\ndef parse_money(s: str | None) -> float | None:\nclass PriceMention:\ndef classify_unit(unit: str | None) -> tuple[str | None, bool]:\ndef extract_prices(text: str) -> list[PriceMention]:\nclass RentGuess:\ndef _whole_weekly(mentions: list, amount: float | None, period: str | None, per_person: bool) -> float | None:\ndef guess_rent(text: str, bedrooms: int | None, people: int | None = None,\ndef detect_bills_included(text: str) -> bool | None:\ndef _year_for(month: int, day: int, today: date) -> int:\ndef parse_date_fragment(s: str, today: date) -> date | None:\ndef parse_available(text: str, today: date | None = None) -> tuple[date | None, bool]:\ndef academic_year_hint(text: str) -> tuple[int, int] | None:\ndef _num(tok: str) -> int | None:\ndef parse_bedrooms(text: str) -> int | None:\ndef parse_bathrooms(text: str) -> float | None:\ndef parse_furnished(text: str) -> str | None:\ndef parse_postcode(text: str) -> tuple[str | None, str | None]:\ndef is_student_let(text: str) -> bool | None:\ndef let_agreed(text: str) -> bool:",
+      "importance": 0.2042
+    },
+    "CLAUDE.md": {
+      "description": "OpenWolf",
+      "tokens": 244,
+      "hash": "14c3fb60f1015b36",
+      "size": 976,
+      "mtimeMs": 1793909160265.3723,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "config.example.yaml": {
+      "description": "Copied into the database on FIRST start only. After that, edit everything in the web UI",
+      "tokens": 481,
+      "hash": "6aca919aceeea831",
+      "size": 1683,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "docker-compose.claude.yml": {
+      "description": "Lets the AI overview / Q&A use the Claude Code CLI with your Claude subscription (no API key).",
+      "tokens": 241,
+      "hash": "12fe024f391beb4e",
+      "size": 843,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "docker-compose.playwright.yml": {
+      "description": "Docker Compose: 0 services",
+      "tokens": 32,
+      "hash": "7b1b2e92a1e88ab2",
+      "size": 112,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "docker-compose.yml": {
+      "description": "Docker Compose services",
+      "tokens": 118,
+      "hash": "2e731981e5ff1bc4",
+      "size": 413,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "Dockerfile": {
+      "description": "Docker container definition",
+      "tokens": 152,
+      "hash": "4851bceec791b775",
+      "size": 568,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "Dockerfile.playwright": {
+      "description": "Variant with headless Chromium for Cloudflare-protected sites (Zoopla). ~1.5 GB image.",
+      "tokens": 171,
+      "hash": "33a85c03fbb931c9",
+      "size": 639,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "PLAN.md": {
+      "description": "House finder: plan and working notes",
+      "tokens": 7482,
+      "hash": "82eeeb515b93d9bf",
+      "size": 30120,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.328Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "README.md": {
+      "description": "Project documentation",
+      "tokens": 647,
+      "hash": "a1769a0b347b9e53",
+      "size": 2591,
+      "mtimeMs": 1793909028286.1099,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "requirements-dev.txt": {
+      "description": "",
+      "tokens": 12,
+      "hash": "0247b70ceb46efe2",
+      "size": 48,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "requirements.txt": {
+      "description": "Python dependencies",
+      "tokens": 72,
+      "hash": "b0f8cfe47f7862a2",
+      "size": 288,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "tests/__init__.py": {
+      "description": "",
+      "tokens": 0,
+      "hash": "e3b0c44298fc1c14",
+      "size": 0,
+      "mtimeMs": 1793909028301.8213,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1413
+    },
+    "tests/access_jwt.py": {
+      "description": "Sign Cloudflare Access style tokens for tests.",
+      "tokens": 170,
+      "hash": "928e5fd9564b38a2",
+      "size": 593,
+      "mtimeMs": 1793909028302.7683,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1781
+    },
+    "tests/conftest.py": {
+      "description": "access_login, session",
+      "tokens": 267,
+      "hash": "0ce2bc86ae369195",
+      "size": 933,
+      "mtimeMs": 1793909028302.7683,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "imports": [
+        "app/__init__.py",
+        "app/config.py",
+        "tests/__init__.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/fixtures/hive_detail.html": {
+      "description": "",
+      "tokens": 576,
+      "hash": "6964375eb68939d4",
+      "size": 2163,
+      "mtimeMs": 1793909028302.7683,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "tests/fixtures/hive_search.html": {
+      "description": "",
+      "tokens": 889,
+      "hash": "a9c15240c28e14da",
+      "size": 3336,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "importance": 0.1101
+    },
+    "tests/test_access.py": {
+      "description": "Tests: list_add_remove, only_admins_can_edit, not_configured, no_matching_app",
+      "tokens": 1030,
+      "hash": "af6ccafbcdc79b09",
+      "size": 3605,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.329Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "cf",
+          "kind": "fn",
+          "startLine": 11,
+          "endLine": 38,
+          "tokens": 417
+        },
+        {
+          "name": "test_list_add_remove",
+          "kind": "fn",
+          "startLine": 41,
+          "endLine": 51,
+          "tokens": 289
+        },
+        {
+          "name": "test_only_admins_can_edit",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 60,
+          "tokens": 127
+        },
+        {
+          "name": "test_not_configured",
+          "kind": "fn",
+          "startLine": 63,
+          "endLine": 67,
+          "tokens": 69
+        },
+        {
+          "name": "test_no_matching_app",
+          "kind": "fn",
+          "startLine": 70,
+          "endLine": 73,
+          "tokens": 69
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "tests/access_jwt.py",
+        "app/__init__.py",
+        "app/config.py",
+        "app/main.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_ai.py": {
+      "description": "Tests: context_has_group_and_listing_facts, ai_disabled_without_key, overview_and_questions_are_saved, photos_dropped_when_api_rejects_them + 6 more",
+      "tokens": 2688,
+      "hash": "aaa50c94a98edce7",
+      "size": 9409,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.330Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "_listing",
+          "kind": "fn",
+          "startLine": 17,
+          "endLine": 24,
+          "tokens": 82
+        },
+        {
+          "name": "test_context_has_group_and_listing_facts",
+          "kind": "fn",
+          "startLine": 27,
+          "endLine": 30,
+          "tokens": 62
+        },
+        {
+          "name": "test_ai_disabled_without_key",
+          "kind": "fn",
+          "startLine": 33,
+          "endLine": 41,
+          "tokens": 146
+        },
+        {
+          "name": "test_overview_and_questions_are_saved",
+          "kind": "fn",
+          "startLine": 44,
+          "endLine": 68,
+          "tokens": 440
+        },
+        {
+          "name": "test_photos_dropped_when_api_rejects_them",
+          "kind": "fn",
+          "startLine": 71,
+          "endLine": 88,
+          "tokens": 268
+        },
+        {
+          "name": "test_refusal_becomes_aierror",
+          "kind": "fn",
+          "startLine": 91,
+          "endLine": 101,
+          "tokens": 150
+        },
+        {
+          "name": "test_updated_endpoint",
+          "kind": "fn",
+          "startLine": 104,
+          "endLine": 107,
+          "tokens": 49
+        },
+        {
+          "name": "test_provider_auto",
+          "kind": "fn",
+          "startLine": 110,
+          "endLine": 122,
+          "tokens": 174
+        },
+        {
+          "name": "test_cli_backend",
+          "kind": "fn",
+          "startLine": 125,
+          "endLine": 156,
+          "tokens": 552
+        },
+        {
+          "name": "test_cli_errors",
+          "kind": "fn",
+          "startLine": 159,
+          "endLine": 171,
+          "tokens": 219
+        },
+        {
+          "name": "test_ai_usage_is_logged_and_admin_only",
+          "kind": "fn",
+          "startLine": 175,
+          "endLine": 202,
+          "tokens": 441
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def _listing(session):\ndef test_context_has_group_and_listing_facts(session):\ndef test_ai_disabled_without_key(session, monkeypatch):\ndef test_overview_and_questions_are_saved(session, monkeypatch):\ndef test_photos_dropped_when_api_rejects_them(session, monkeypatch):\ndef test_refusal_becomes_aierror(monkeypatch):\ndef test_updated_endpoint(session):\ndef test_provider_auto(monkeypatch):\ndef test_cli_backend(session, monkeypatch):\ndef test_cli_errors(monkeypatch):\ndef test_ai_usage_is_logged_and_admin_only(session, monkeypatch):",
+      "imports": [
+        "tests/access_jwt.py",
+        "app/__init__.py",
+        "app/config.py",
+        "app/main.py",
+        "app/pipeline.py",
+        "tests/test_pipeline.py",
+        "app/store.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_api.py": {
+      "description": "Tests: api_roundtrip",
+      "tokens": 489,
+      "hash": "56f1e9309f167f57",
+      "size": 1711,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.330Z",
+      "source": "scan",
+      "imports": [
+        "app/main.py",
+        "app/pipeline.py",
+        "tests/test_pipeline.py",
+        "app/store.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_emailer.py": {
+      "description": "Tests: digest_contents_and_rendering, reminders_for_great_unactioned, send_digest_dry_run_and_failure_logged, digest_due_windows",
+      "tokens": 804,
+      "hash": "fb3f79cb885f8994",
+      "size": 2818,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.330Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "test_digest_contents_and_rendering",
+          "kind": "fn",
+          "startLine": 9,
+          "endLine": 21,
+          "tokens": 190
+        },
+        {
+          "name": "test_reminders_for_great_unactioned",
+          "kind": "fn",
+          "startLine": 24,
+          "endLine": 36,
+          "tokens": 169
+        },
+        {
+          "name": "test_send_digest_dry_run_and_failure_logged",
+          "kind": "fn",
+          "startLine": 39,
+          "endLine": 51,
+          "tokens": 160
+        },
+        {
+          "name": "test_digest_due_windows",
+          "kind": "fn",
+          "startLine": 54,
+          "endLine": 67,
+          "tokens": 208
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/emailer.py",
+        "app/models.py",
+        "app/pipeline.py",
+        "tests/test_pipeline.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_pipeline.py": {
+      "description": "Tests: bills_calibration, normalise_prefers_text_pppw, normalise_academic_year_hint, upsert_events_and_price_drop + 16 more",
+      "tokens": 4351,
+      "hash": "6c9a31a3a8ce4fcb",
+      "size": 15243,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.330Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "profile",
+          "kind": "fn",
+          "startLine": 16,
+          "endLine": 20,
+          "tokens": 74
+        },
+        {
+          "name": "raw",
+          "kind": "fn",
+          "startLine": 23,
+          "endLine": 28,
+          "tokens": 124
+        },
+        {
+          "name": "test_bills_calibration",
+          "kind": "fn",
+          "startLine": 31,
+          "endLine": 36,
+          "tokens": 119
+        },
+        {
+          "name": "test_normalise_prefers_text_pppw",
+          "kind": "fn",
+          "startLine": 39,
+          "endLine": 42,
+          "tokens": 52
+        },
+        {
+          "name": "test_normalise_academic_year_hint",
+          "kind": "fn",
+          "startLine": 45,
+          "endLine": 47,
+          "tokens": 64
+        },
+        {
+          "name": "test_upsert_events_and_price_drop",
+          "kind": "fn",
+          "startLine": 50,
+          "endLine": 58,
+          "tokens": 126
+        },
+        {
+          "name": "test_enrich_scores_and_flags_great",
+          "kind": "fn",
+          "startLine": 61,
+          "endLine": 69,
+          "tokens": 128
+        },
+        {
+          "name": "test_hard_filters",
+          "kind": "fn",
+          "startLine": 80,
+          "endLine": 85,
+          "tokens": 73
+        },
+        {
+          "name": "test_bills_estimate_added_when_not_included",
+          "kind": "fn",
+          "startLine": 88,
+          "endLine": 93,
+          "tokens": 88
+        },
+        {
+          "name": "test_stated_bills_package_used",
+          "kind": "fn",
+          "startLine": 96,
+          "endLine": 100,
+          "tokens": 67
+        },
+        {
+          "name": "test_dedupe_across_sites",
+          "kind": "fn",
+          "startLine": 103,
+          "endLine": 111,
+          "tokens": 163
+        },
+        {
+          "name": "test_price_component_shape",
+          "kind": "fn",
+          "startLine": 114,
+          "endLine": 118,
+          "tokens": 69
+        },
+        {
+          "name": "test_estimate_minutes_reasonable",
+          "kind": "fn",
+          "startLine": 121,
+          "endLine": 125,
+          "tokens": 86
+        },
+        {
+          "name": "test_add_missing_columns",
+          "kind": "fn",
+          "startLine": 128,
+          "endLine": 138,
+          "tokens": 145
+        },
+        {
+          "name": "test_run_source_persists_run_counts",
+          "kind": "fn",
+          "startLine": 141,
+          "endLine": 165,
+          "tokens": 280
+        },
+        {
+          "name": "test_first_scrape_time_resumes_interval",
+          "kind": "fn",
+          "startLine": 168,
+          "endLine": 180,
+          "tokens": 180
+        },
+        {
+          "name": "test_rescore_batches_routing_calls",
+          "kind": "fn",
+          "startLine": 183,
+          "endLine": 206,
+          "tokens": 281
+        },
+        {
+          "name": "test_sitemap_stubs_only_stored_when_live_and_priced",
+          "kind": "fn",
+          "startLine": 209,
+          "endLine": 248,
+          "tokens": 438
+        },
+        {
+          "name": "test_ors_pauses_on_quota_exceeded",
+          "kind": "fn",
+          "startLine": 251,
+          "endLine": 266,
+          "tokens": 189
+        },
+        {
+          "name": "test_dedupe_matches_abbreviated_streets_and_copied_text",
+          "kind": "fn",
+          "startLine": 269,
+          "endLine": 282,
+          "tokens": 323
+        },
+        {
+          "name": "test_dedupe_ignores_agent_boilerplate",
+          "kind": "fn",
+          "startLine": 285,
+          "endLine": 293,
+          "tokens": 202
+        },
+        {
+          "name": "test_reprice_fixes_bills_taken_as_rent",
+          "kind": "fn",
+          "startLine": 296,
+          "endLine": 305,
+          "tokens": 184
+        },
+        {
+          "name": "test_dedupe_does_not_chain_neighbouring_streets",
+          "kind": "fn",
+          "startLine": 308,
+          "endLine": 319,
+          "tokens": 257
+        },
+        {
+          "name": "test_dedupe_keeps_units_in_one_block_apart",
+          "kind": "fn",
+          "startLine": 322,
+          "endLine": 327,
+          "tokens": 110
+        },
+        {
+          "name": "test_small_flat_rent_split_by_bedrooms_not_group",
+          "kind": "fn",
+          "startLine": 330,
+          "endLine": 334,
+          "tokens": 72
+        },
+        {
+          "name": "test_dedupe_respects_full_postcodes_and_same_site_units",
+          "kind": "fn",
+          "startLine": 337,
+          "endLine": 346,
+          "tokens": 228
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def profile(**kw) -> Profile:\ndef raw(**kw) -> RawListing:\ndef test_bills_calibration():\ndef test_normalise_prefers_text_pppw():\ndef test_normalise_academic_year_hint():\ndef test_upsert_events_and_price_drop(session):\ndef test_enrich_scores_and_flags_great(session, monkeypatch):\ndef test_hard_filters(session, override, reason):\ndef test_bills_estimate_added_when_not_included(session):\ndef test_stated_bills_package_used(session):\ndef test_dedupe_across_sites(session):\ndef test_price_component_shape():\ndef test_estimate_minutes_reasonable():\ndef test_add_missing_columns(tmp_path):\ndef test_run_source_persists_run_counts(session, monkeypatch):\ndef test_first_scrape_time_resumes_interval(session):\ndef test_rescore_batches_routing_calls(session, monkeypatch):\ndef test_sitemap_stubs_only_stored_when_live_and_priced(session, monkeypatch):\ndef test_ors_pauses_on_quota_exceeded(monkeypatch):\ndef test_dedupe_matches_abbreviated_streets_and_copied_text(session):\ndef test_dedupe_ignores_agent_boilerplate(session):\ndef test_reprice_fixes_bills_taken_as_rent(session):\ndef test_dedupe_does_not_chain_neighbouring_streets(session):\ndef test_dedupe_keeps_units_in_one_block_apart(session):\ndef test_small_flat_rent_split_by_bedrooms_not_group(session):\ndef test_dedupe_respects_full_postcodes_and_same_site_units(session):",
+      "imports": [
+        "app/__init__.py",
+        "app/bills.py",
+        "app/models.py",
+        "app/pipeline.py",
+        "app/profile.py",
+        "app/scoring.py",
+        "app/scrapers/base.py"
+      ],
+      "importance": 0.1703
+    },
+    "tests/test_scrapers.py": {
+      "description": "Parser tests on small synthetic pages that mirror the live structures seen on 2026-10-22.",
+      "tokens": 8095,
+      "hash": "5b295098166b8be9",
+      "size": 28357,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.331Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "nd",
+          "kind": "fn",
+          "startLine": 15,
+          "endLine": 16,
+          "tokens": 42
+        },
+        {
+          "name": "test_rightmove_search_next_data",
+          "kind": "fn",
+          "startLine": 34,
+          "endLine": 46,
+          "tokens": 244
+        },
+        {
+          "name": "test_rightmove_decode_flat",
+          "kind": "fn",
+          "startLine": 49,
+          "endLine": 55,
+          "tokens": 153
+        },
+        {
+          "name": "test_rightmove_detail_page_model",
+          "kind": "fn",
+          "startLine": 58,
+          "endLine": 89,
+          "tokens": 525
+        },
+        {
+          "name": "test_openrent_arrays",
+          "kind": "fn",
+          "startLine": 94,
+          "endLine": 126,
+          "tokens": 478
+        },
+        {
+          "name": "test_openrent_detail",
+          "kind": "fn",
+          "startLine": 129,
+          "endLine": 151,
+          "tokens": 480
+        },
+        {
+          "name": "test_unihomes_vue_prop",
+          "kind": "fn",
+          "startLine": 156,
+          "endLine": 172,
+          "tokens": 372
+        },
+        {
+          "name": "test_afs_search_and_detail",
+          "kind": "fn",
+          "startLine": 177,
+          "endLine": 203,
+          "tokens": 634
+        },
+        {
+          "name": "test_sturents_landing_cards_and_detail",
+          "kind": "fn",
+          "startLine": 208,
+          "endLine": 231,
+          "tokens": 601
+        },
+        {
+          "name": "test_spareroom_cards_keep_whole_properties_only",
+          "kind": "fn",
+          "startLine": 236,
+          "endLine": 251,
+          "tokens": 451
+        },
+        {
+          "name": "test_spareroom_detail_dl",
+          "kind": "fn",
+          "startLine": 254,
+          "endLine": 266,
+          "tokens": 310
+        },
+        {
+          "name": "test_search_urls",
+          "kind": "fn",
+          "startLine": 269,
+          "endLine": 274,
+          "tokens": 112
+        },
+        {
+          "name": "test_sturents_search_skips_empty_data_house",
+          "kind": "fn",
+          "startLine": 279,
+          "endLine": 286,
+          "tokens": 194
+        },
+        {
+          "name": "test_sturents_deposit_from_availability_not_description",
+          "kind": "fn",
+          "startLine": 289,
+          "endLine": 294,
+          "tokens": 119
+        },
+        {
+          "name": "test_openrent_detail_photos_from_gallery_not_meta",
+          "kind": "fn",
+          "startLine": 297,
+          "endLine": 306,
+          "tokens": 277
+        },
+        {
+          "name": "test_afs_zero_bills_quote_and_deposit_ignored",
+          "kind": "fn",
+          "startLine": 309,
+          "endLine": 315,
+          "tokens": 169
+        },
+        {
+          "name": "_sr_card",
+          "kind": "fn",
+          "startLine": 318,
+          "endLine": 325,
+          "tokens": 215
+        },
+        {
+          "name": "test_spareroom_single_room_in_big_house_is_skipped_but_multi_room_kept",
+          "kind": "fn",
+          "startLine": 328,
+          "endLine": 335,
+          "tokens": 205
+        },
+        {
+          "name": "test_spareroom_detail_room_rents_and_available_now",
+          "kind": "fn",
+          "startLine": 338,
+          "endLine": 347,
+          "tokens": 238
+        },
+        {
+          "name": "test_sturents_city_page_cards_with_empty_data_house",
+          "kind": "fn",
+          "startLine": 350,
+          "endLine": 364,
+          "tokens": 406
+        },
+        {
+          "name": "test_sturents_sitemap_uses_full_city_slug_only",
+          "kind": "fn",
+          "startLine": 367,
+          "endLine": 391,
+          "tokens": 410
+        },
+        {
+          "name": "test_unihomes_detail_photos_deduped_to_this_property",
+          "kind": "fn",
+          "startLine": 394,
+          "endLine": 401,
+          "tokens": 192
+        },
+        {
+          "name": "test_sturents_unavailable_detail_and_text_bathrooms",
+          "kind": "fn",
+          "startLine": 404,
+          "endLine": 417,
+          "tokens": 364
+        },
+        {
+          "name": "test_hive_search_and_detail",
+          "kind": "fn",
+          "startLine": 420,
+          "endLine": 435,
+          "tokens": 328
+        }
+      ],
+      "symbolSource": "ts",
+      "skeleton": "def nd(data: dict) -> str:\ndef test_rightmove_search_next_data():\ndef test_rightmove_decode_flat():\ndef test_rightmove_detail_page_model():\ndef test_openrent_arrays():\ndef test_openrent_detail():\ndef test_unihomes_vue_prop():\ndef test_afs_search_and_detail():\ndef test_sturents_landing_cards_and_detail():\ndef test_spareroom_cards_keep_whole_properties_only():\ndef test_spareroom_detail_dl():\ndef test_search_urls():\ndef test_sturents_search_skips_empty_data_house():\ndef test_sturents_deposit_from_availability_not_description():\ndef test_openrent_detail_photos_from_gallery_not_meta():\ndef test_afs_zero_bills_quote_and_deposit_ignored():\ndef _sr_card(lid, room_text, rate, desc=\"\", period=\"pcm\", rooms=\"\"):\ndef test_spareroom_single_room_in_big_house_is_skipped_but_multi_room_kept():\ndef test_spareroom_detail_room_rents_and_available_now():\ndef test_sturents_city_page_cards_with_empty_data_house():\ndef test_sturents_sitemap_uses_full_city_slug_only():\ndef test_unihomes_detail_photos_deduped_to_this_property():\ndef test_sturents_unavailable_detail_and_text_bathrooms():\ndef test_hive_search_and_detail():",
+      "imports": [
+        "app/profile.py",
+        "app/scrapers/base.py",
+        "app/scrapers/registry.py",
+        "app/scrapers/rightmove.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_textparse.py": {
+      "description": "Snippets below are verbatim (or near-verbatim) text seen on real listings in Oct 2026.",
+      "tokens": 1933,
+      "hash": "e9f76ca14a896165",
+      "size": 6802,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.331Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "test_classify_unit",
+          "kind": "fn",
+          "startLine": 17,
+          "endLine": 18,
+          "tokens": 25
+        },
+        {
+          "name": "test_rightmove_bills_package_listing",
+          "kind": "fn",
+          "startLine": 21,
+          "endLine": 27,
+          "tokens": 105
+        },
+        {
+          "name": "test_zoopla_pppw_with_inc_bills_variant",
+          "kind": "fn",
+          "startLine": 30,
+          "endLine": 35,
+          "tokens": 79
+        },
+        {
+          "name": "test_unihomes_bills_included",
+          "kind": "fn",
+          "startLine": 38,
+          "endLine": 43,
+          "tokens": 90
+        },
+        {
+          "name": "test_whole_property_pcm_only",
+          "kind": "fn",
+          "startLine": 46,
+          "endLine": 50,
+          "tokens": 66
+        },
+        {
+          "name": "test_structured_whole_property_divided_by_people",
+          "kind": "fn",
+          "startLine": 53,
+          "endLine": 56,
+          "tokens": 72
+        },
+        {
+          "name": "test_deposit_not_rent",
+          "kind": "fn",
+          "startLine": 59,
+          "endLine": 61,
+          "tokens": 42
+        },
+        {
+          "name": "test_spareroom_equivalent_per_room",
+          "kind": "fn",
+          "startLine": 64,
+          "endLine": 66,
+          "tokens": 60
+        },
+        {
+          "name": "test_detect_bills",
+          "kind": "fn",
+          "startLine": 77,
+          "endLine": 78,
+          "tokens": 27
+        },
+        {
+          "name": "test_parse_available",
+          "kind": "fn",
+          "startLine": 94,
+          "endLine": 95,
+          "tokens": 31
+        },
+        {
+          "name": "test_month_only_rolls_to_next_year",
+          "kind": "fn",
+          "startLine": 98,
+          "endLine": 100,
+          "tokens": 53
+        },
+        {
+          "name": "test_rooms",
+          "kind": "fn",
+          "startLine": 111,
+          "endLine": 113,
+          "tokens": 35
+        },
+        {
+          "name": "test_postcodes",
+          "kind": "fn",
+          "startLine": 116,
+          "endLine": 118,
+          "tokens": 58
+        },
+        {
+          "name": "test_academic_year",
+          "kind": "fn",
+          "startLine": 121,
+          "endLine": 123,
+          "tokens": 50
+        },
+        {
+          "name": "test_furnished",
+          "kind": "fn",
+          "startLine": 126,
+          "endLine": 128,
+          "tokens": 45
+        },
+        {
+          "name": "test_guess_rent_implausibly_cheap_whole_price_is_per_room",
+          "kind": "fn",
+          "startLine": 131,
+          "endLine": 137,
+          "tokens": 175
+        },
+        {
+          "name": "test_bills_figures_are_not_taken_as_rent",
+          "kind": "fn",
+          "startLine": 140,
+          "endLine": 147,
+          "tokens": 159
+        },
+        {
+          "name": "test_weekly_price_for_a_shared_house_is_per_person",
+          "kind": "fn",
+          "startLine": 150,
+          "endLine": 153,
+          "tokens": 64
+        },
+        {
+          "name": "test_old_advert_left_in_description_loses_to_portal_price",
+          "kind": "fn",
+          "startLine": 156,
+          "endLine": 162,
+          "tokens": 180
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/__init__.py"
+      ],
+      "importance": 0.1101
+    },
+    "tests/test_viewer.py": {
+      "description": "Tests: faked_email_header_is_not_believed, verified_token_is_believed_and_case_ignored, non_admin_token_cannot_edit, bad_tokens_cannot_edit + 4 more",
+      "tokens": 647,
+      "hash": "d526decc46fa8926",
+      "size": 2263,
+      "mtimeMs": 1793909028302.885,
+      "updatedAt": "2026-11-05T20:06:00.331Z",
+      "source": "scan",
+      "symbols": [
+        {
+          "name": "client",
+          "kind": "fn",
+          "startLine": 14,
+          "endLine": 16,
+          "tokens": 35
+        },
+        {
+          "name": "can_edit",
+          "kind": "fn",
+          "startLine": 19,
+          "endLine": 20,
+          "tokens": 30
+        },
+        {
+          "name": "test_faked_email_header_is_not_believed",
+          "kind": "fn",
+          "startLine": 23,
+          "endLine": 24,
+          "tokens": 39
+        },
+        {
+          "name": "test_verified_token_is_believed_and_case_ignored",
+          "kind": "fn",
+          "startLine": 27,
+          "endLine": 28,
+          "tokens": 35
+        },
+        {
+          "name": "test_non_admin_token_cannot_edit",
+          "kind": "fn",
+          "startLine": 31,
+          "endLine": 32,
+          "tokens": 33
+        },
+        {
+          "name": "test_bad_tokens_cannot_edit",
+          "kind": "fn",
+          "startLine": 38,
+          "endLine": 39,
+          "tokens": 34
+        },
+        {
+          "name": "test_no_token_means_no_viewer",
+          "kind": "fn",
+          "startLine": 42,
+          "endLine": 43,
+          "tokens": 29
+        },
+        {
+          "name": "test_unconfigured_never_believes_a_token",
+          "kind": "fn",
+          "startLine": 46,
+          "endLine": 48,
+          "tokens": 53
+        },
+        {
+          "name": "test_no_admin_list_still_needs_a_real_login",
+          "kind": "fn",
+          "startLine": 51,
+          "endLine": 55,
+          "tokens": 72
+        },
+        {
+          "name": "test_panel_managed_turns_off_the_built_in_friends_editor",
+          "kind": "fn",
+          "startLine": 58,
+          "endLine": 65,
+          "tokens": 151
+        }
+      ],
+      "symbolSource": "ts",
+      "imports": [
+        "app/config.py",
+        "app/main.py",
+        "tests/access_jwt.py"
+      ],
+      "importance": 0.1101
+    }
+  },
+  "preamble": [
+    "> Project structure index. Auto-maintained by OpenWolf hooks and daemon.",
+    "> Run `openwolf scan` to generate, or wait for the first Claude Code session.",
+    "> Status: Pending initial scan"
+  ]
+}

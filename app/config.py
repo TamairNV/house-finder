@@ -54,6 +54,19 @@ class Settings(BaseSettings):
     cf_team_domain: str | None = None  # e.g. team.cloudflareaccess.com; verifies the Access login token
     cf_access_aud: str | None = None  # the house Access app's AUD; no AUD means nobody counts as signed in
 
+    # Several sites in one app (see tenancy.py). The admin site lists them and sets new ones up.
+    default_site_slug: str = "house"  # the original site (HF_BASE_URL's host, data/house_finder.db)
+    admin_host: str = "house-admin.tamairnv.co.uk"
+    admin_database_url: str | None = None  # default: sqlite data/admin.db
+    admin_access_aud: str | None = None  # the admin site's Access AUD (the setup command stores it in admin.db too)
+    admin_access_policy: str = "Tamair only"  # reusable Access policy for the admin site (made if missing)
+    site_domain: str = "tamairnv.co.uk"  # new sites get <slug>.<site_domain>
+    cf_zone_id: str | None = None  # found from site_domain when empty
+    cf_tunnel_id: str | None = "1b7d6f75-aeea-4d8a-9026-1266a79e8e28"  # tunnel "house" on TNV-server
+    tunnel_service: str = "http://localhost:8095"  # where the tunnel sends new hostnames
+    access_session: str = "720h"
+    log_requests: bool = True  # request log for the admin network page
+
     # Scraping
     scheduler_enabled: bool = True
     user_agent: str = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 "

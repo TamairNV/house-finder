@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from .. import netstats
 from ..config import get_settings
 from ..profile import Profile, SourceLocation
 
@@ -135,13 +136,18 @@ class Fetcher:
         for attempt in range(3):
             self._wait(host)
             self.requests += 1
+            t0 = time.monotonic()
             try:
                 headers = {"Accept": "application/json"} if json_api else None
                 r = self.client.get(url, params=params, headers=headers)
             except httpx.HTTPError as e:
+                netstats.record_fetch(source=self.source, host=host, status=0, ms=int((time.monotonic() - t0) * 1000),
+                                      bytes_in=0)
                 log.warning("[%s] %s failed (%s), attempt %d", self.source, url, e, attempt + 1)
                 time.sleep(5 * (attempt + 1))
                 continue
+            netstats.record_fetch(source=self.source, host=host, status=r.status_code,
+                                  ms=int((time.monotonic() - t0) * 1000), bytes_in=len(r.content))
             if r.status_code in (429, 503):
                 wait = int(r.headers.get("Retry-After", "0") or 0) or 30 * (attempt + 1)
                 log.warning("[%s] %s -> %s, backing off %ss", self.source, url, r.status_code, wait)

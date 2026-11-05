@@ -133,7 +133,7 @@ def test_add_missing_columns(tmp_path):
     eng = create_engine(url)
     with eng.begin() as c:
         c.execute(text("CREATE TABLE recipients (id INTEGER PRIMARY KEY, name VARCHAR(100), email VARCHAR(200))"))
-    db._add_missing_columns(eng)
+    db.add_missing_columns(eng)
     cols = {c["name"] for c in inspect(eng).get_columns("recipients")}
     assert {"digest_frequency", "instant_great", "min_score"} <= cols
 

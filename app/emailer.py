@@ -90,7 +90,6 @@ def build_digest(session: Session, r: Recipient, profile: Profile, now: datetime
 
 
 def render_digest(d: Digest, r: Recipient, profile: Profile, kind: str = "digest") -> tuple[str, str, str]:
-    s = get_settings()
     if kind == "instant":
         top = d.new[0]
         subject = f"🏠 Great place: {top.title or top.address} ({top.score:.0f}/100)"
@@ -105,7 +104,11 @@ def render_digest(d: Digest, r: Recipient, profile: Profile, kind: str = "digest
         if d.status_changes:
             bits.append(f"{len(d.status_changes)} update{'s' if len(d.status_changes) > 1 else ''}")
         subject = f"House finder: {', '.join(bits)}"
-    ctx = dict(d=d, r=r, profile=profile, base_url=s.base_url.rstrip("/"), kind=kind)
+    from .tenancy import current
+    site = current()
+    if not site.is_default:
+        subject = f"[{site.name}] {subject}"
+    ctx = dict(d=d, r=r, profile=profile, base_url=site.base_url.rstrip("/"), kind=kind)
     html = _env.get_template("email_digest.html").render(**ctx)
     text = _env.get_template("email_digest.txt").render(**ctx)
     return subject, html, text
