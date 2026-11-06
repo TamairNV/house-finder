@@ -8,3 +8,4 @@ config.yaml
 dumps/
 .claude/settings.json
 .claude/settings.local.json
+.keys-cache/
