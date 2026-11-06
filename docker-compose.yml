@@ -7,9 +7,16 @@ services:
     environment:
       - HF_DATA_DIR=/data
       - HF_CONFIG_FILE=/config/config.yaml
+      - KEYS_URL=http://keys:8001
+      - KEYS_CACHE_FILE=/keys-cache/keys.json
     volumes:
       - ./data:/data
       - ./config.yaml:/config/config.yaml:ro
+      - ./.keys-cache:/keys-cache
     ports:
       # 8095 is free on TNV-server (checked 2026-10-22). Bind to LAN/Tailscale only; see PLAN.md.
       - "8095:8000"
+    networks: [default, keys-net]
+networks:
+  keys-net:
+    external: true  # created by ~/keys; private fetch API at http://keys:8001
